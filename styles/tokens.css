@@ -1,0 +1,93 @@
+/* Direction: Technical Mono, dark-first.
+   A channel guide is a data surface (numbers, resolutions, counts) watched from a couch,
+   so dark is the only theme: a light TV UI glares in a dim room.
+   Accent is an amber "on air" tally light, used for focus and the primary action only. */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Type --------------------------------------------------------- */
+  --font-display: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-text: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-display);
+
+  /* Ratio 1.25: dense UI. Root size scales with the screen for 10-foot viewing (see app.css). */
+  --text-2xs: 0.64rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.01em;
+  --tracking-body: 0;
+  --tracking-label: 0.08em;
+
+  --leading-display: 1.1;
+  --leading-heading: 1.3;
+  --leading-body: 1.6;
+  --leading-ui: 1.35;
+
+  --measure-prose: 64ch;
+
+  /* ---- Neutrals: cool blue-gray, hue ~210 ---------------------------- */
+  --n-0: #0b0d0f;  /* page background */
+  --n-1: #14181c;  /* raised surface: cards, topbar */
+  --n-2: #252c33;  /* hairline borders */
+  --n-3: #8b96a3;  /* muted foreground, 6.9:1 on n-0 */
+  --n-4: #b9c2cc;  /* secondary foreground */
+  --n-5: #e4e9ee;  /* primary ink */
+
+  /* ---- Accent: amber tally --------------------------------------------- */
+  --accent: #f2a33c;
+  --accent-hover: #f5b45e;
+  --accent-active: #d98b25;
+  --accent-subtle: #2a2116;
+  --accent-on: #1a1206;
+
+  /* ---- Semantic ----------------------------------------------------- */
+  --danger-fg: #ff8a7a; --danger-bg: #2a1512; --danger-border: #5c2a23;
+  --success-fg: #6fdc9d; --success-bg: #11241a; --success-border: #22513a;
+
+  /* ---- Space -------------------------------------------------------- */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 24px;  --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ---- Radius ------------------------------------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  --border-hairline: 1px solid var(--n-2);
+
+  /* ---- Elevation: the player overlay only ---------------------------- */
+  --elevation-overlay: 0 24px 64px rgb(0 0 0 / 0.6);
+
+  /* ---- Motion ------------------------------------------------------- */
+  --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+
+  /* ---- Focus: thick on purpose, it must read from across a room ------ */
+  --focus-ring: 3px solid var(--accent);
+  --focus-offset: 3px;
+}
+
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

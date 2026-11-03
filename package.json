@@ -1,0 +1,14 @@
+{
+  "name": "iptv-player",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Web IPTV player for M3U playlists, built for keyboard and TV remote navigation.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}

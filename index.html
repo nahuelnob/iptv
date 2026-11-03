@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPTV Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js" defer></script>
+  <script src="src/main.js" type="module"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand"><span class="brand__dot" aria-hidden="true"></span>IPTV</h1>
+
+    <form class="source" data-source-form>
+      <label class="visually-hidden" for="playlist-url">Playlist URL</label>
+      <input class="source__input" id="playlist-url" type="url" data-nav
+             placeholder="https://example.com/playlist.m3u" autocomplete="url" required>
+      <button class="button button--primary" type="submit" data-nav>Load</button>
+      <label class="button" data-nav tabindex="0" role="button">
+        Open file
+        <input class="visually-hidden" type="file" accept=".m3u,.m3u8,audio/x-mpegurl,application/vnd.apple.mpegurl" data-source-file tabindex="-1">
+      </label>
+    </form>
+    <p class="source__feedback" data-source-feedback role="status" aria-live="polite"></p>
+  </header>
+
+  <main>
+    <section class="empty" data-empty>
+      <h2 class="empty__title">Load a playlist to start watching</h2>
+      <p class="empty__body">
+        Paste the URL of an M3U playlist above, or open an <code>.m3u</code> file from this device.
+        Use only lists you have the right to watch: public broadcasters, free-to-air channels, or a service you pay for.
+      </p>
+      <p class="empty__body empty__hint">Arrow keys move between channels. Enter plays. Esc or Back closes the player.</p>
+    </section>
+    <div class="rows" data-rows></div>
+  </main>
+
+  <div class="player" data-player data-nav-scope hidden role="dialog" aria-modal="true" aria-labelledby="player-title">
+    <video class="player__video" controls playsinline></video>
+    <!-- tabindex -1 keeps focus (and the Back key) in this page instead of inside YouTube's frame. -->
+    <iframe class="player__video" data-player-embed hidden tabindex="-1" title="YouTube player"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="player__bar">
+      <div>
+        <h2 class="player__title" id="player-title" data-player-title></h2>
+        <p class="player__meta" data-player-meta></p>
+      </div>
+      <button class="button" type="button" data-nav data-player-close>Back to channels</button>
+    </div>
+    <p class="player__status" data-player-status role="status" aria-live="polite" hidden></p>
+  </div>
+</body>
+</html>
