@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opciones de diseño IPTV</title>
+<style>
+  :root { color-scheme: dark; }
+  body { max-width: 52rem; margin: 0 auto; padding: 48px 24px; background: #101215; color: #e6e9ed; font: 18px/1.6 system-ui, "Segoe UI", Roboto, sans-serif; }
+  h1 { margin: 0 0 8px; font-size: 1.95rem; letter-spacing: -0.02em; line-height: 1.1; }
+  .lead { margin: 0 0 32px; color: #a3abb6; }
+  ol { margin: 0; padding: 0; list-style: none; }
+  li { padding: 20px 0; border-top: 1px solid #2a2f37; }
+  a { color: #e6e9ed; font-weight: 600; font-size: 1.25rem; }
+  a:focus-visible { outline: 3px solid #e6e9ed; outline-offset: 3px; }
+  p { margin: 4px 0 0; color: #b6bdc7; }
+  .states { font-size: 0.9rem; color: #959daa; }
+  .states a { font-size: inherit; font-weight: 400; color: #b6bdc7; }
+  .variants { margin: 16px 0 0 24px; }
+  .variants li { padding: 12px 0; border-top: 1px dashed #2a2f37; }
+  .variants a { font-size: 1.05rem; }
+</style>
+</head>
+<body>
+  <h1>Reproductor IPTV: tres direcciones de diseño</h1>
+  <p class="lead">Cada maqueta es estática y autocontenida. Las flechas mueven el foco, Enter reproduce, Esc o Retroceso vuelve y ▲/▼ cambian de canal en el reproductor. Las teclas 1–8 (o los controles de la esquina inferior derecha) muestran cada estado. El plan y la comparación están en <code>design/PLAN.md</code>.</p>
+  <ol>
+    <li>
+      <a href="option-a.html">Opción A: Al Aire</a>
+      <p>Technical Mono, evolución de la app actual: filas por categoría al estilo de las plataformas de streaming, debajo de una franja de texto para seguir viendo, canales numerados y una barra de información tipo decodificador mientras mirás.</p>
+      <p class="states">Estados: <a href="option-a.html#player">reproductor</a> · <a href="option-a.html#search">búsqueda</a> · <a href="option-a.html#favorites">favoritos</a> · <a href="option-a.html#loading">cargando</a> · <a href="option-a.html#error">error</a></p>
+    </li>
+    <li>
+      <a href="option-b.html">Opción B: Guía de Canales</a>
+      <p>Swiss Grid, oscuro: una guía de TV en vivo en tres columnas (secciones y categorías, lista de canales, vista previa). La misma lista entra al reproductor cuando cambiás de canal.</p>
+      <p class="states">Estados: <a href="option-b.html#player">reproductor</a> · <a href="option-b.html#search">búsqueda</a> · <a href="option-b.html#favorites">favoritos</a> · <a href="option-b.html#loading">cargando</a> · <a href="option-b.html#error">error</a></p>
+    </li>
+    <li>
+      <a href="option-c.html">Opción C: Mosaico del Living</a>
+      <p>Soft Tactile, oscuro cálido: una sola grilla de mosaicos con iniciales grandes, filtrada por chips, con el nombre del canal con foco en grande arriba, teclado en pantalla para buscar y una tira de zapping en el reproductor.</p>
+      <p class="states">Estados: <a href="option-c.html#player">reproductor</a> · <a href="option-c.html#search">búsqueda</a> · <a href="option-c.html#favorites">favoritos</a> · <a href="option-c.html#loading">cargando</a> · <a href="option-c.html#error">error</a></p>
+      <ol class="variants">
+        <li>
+          <a href="option-c-header-1.html">Header 1: Dos niveles</a>
+          <p>Arriba las secciones en pestañas; abajo una tira de categorías con cantidad que se desplaza, con contadores «◀ n» y «n más ▶» en los bordes.</p>
+          <p class="states">Estados: <a href="option-c-header-1.html#cats">tira recorrida</a> · <a href="option-c-header-1.html#home+Cl%C3%A1sicos">categoría al final</a> · <a href="option-c-header-1.html#home+corta">lista de 6 categorías</a></p>
+        </li>
+        <li>
+          <a href="option-c-header-2.html">Header 2: Riel lateral</a>
+          <p>Un riel de íconos marca la sección; ◀ abre un panel con las secciones y todas las categorías en una lista vertical. Arriba, la ruta «Inicio › categoría».</p>
+          <p class="states">Estados: <a href="option-c-header-2.html#cats">panel abierto</a> · <a href="option-c-header-2.html#home+Noticias">filtrado por Noticias</a> · <a href="option-c-header-2.html#home+corta">lista de 6 categorías</a></p>
+        </li>
+        <li>
+          <a href="option-c-header-3.html">Header 3: Selector de categorías</a>
+          <p>Una sola fila: secciones en un control segmentado y un botón «Categoría» que abre una página con todas las categorías en grilla.</p>
+          <p class="states">Estados: <a href="option-c-header-3.html#cats">selector abierto</a> · <a href="option-c-header-3.html#home+Entretenimiento">filtrado por Entretenimiento</a> · <a href="option-c-header-3.html#home+corta">lista de 6 categorías</a></p>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</body>
+</html>

@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opción A: Al Aire (opciones de diseño IPTV)</title>
+<!--
+  Option A: "Al Aire" (On Air). UI copy in Argentine Spanish (es-AR).
+  Direction: Technical Mono, evolved from the app's current tokens. Dark-only (TV in a dim room).
+  Tokens: IBM Plex Mono for numbers, labels and metadata; IBM Plex Sans for channel names.
+          Cool blue-gray neutrals (hue ~215): #0b0d0f #14181c #1f252b #2c343c #8b96a3 #b9c2cc #e4e9ee.
+          One accent, amber "tally light" #f2a33c (focus + primary action only).
+          Type ratio 1.25, root 16px (phone) to 24px (1080p TV). Radius 2/4/6px. No shadows on static content.
+  Borrowed patterns: horizontal category rows (Netflix); a "resume" band at the top of home (streaming heroes);
+          focus scaling (Android TV launcher); channel numbers + on-screen display + up/down zapping (cable set-top boxes).
+  Different: the featured band is text-only (no key art to download), every channel gets a stable number,
+          cards are monogram-first, metadata is set in mono like a broadcast slate.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+
+  /* Type */
+  --font-display: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-text: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.64rem;   /* hints only, never information */
+  --text-sm: 0.8rem;    /* metadata floor on TV: ~19px at 1080p */
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display: 3.052rem;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.01em;
+  --tracking-label: 0.08em;
+  --leading-display: 1.05;
+  --leading-ui: 1.35;
+  --leading-body: 1.6;
+  --measure-prose: 60ch;
+
+  /* Neutrals, hue ~215, low chroma */
+  --n-0: #0b0d0f;   /* page */
+  --n-1: #14181c;   /* raised: cards, bars */
+  --n-2: #1f252b;   /* focused card surface */
+  --n-3: #2c343c;   /* hairline */
+  --n-4: #8b96a3;   /* muted text: 6.5:1 on n-0, 5.9:1 on n-1 */
+  --n-5: #b9c2cc;   /* secondary text */
+  --n-6: #e4e9ee;   /* ink */
+  --video: #07090b; /* simulated picture */
+
+  /* Accent: amber tally */
+  --accent: #f2a33c;        /* 9.3:1 on n-0 */
+  --accent-hover: #f5b45e;
+  --accent-active: #d98b25;
+  --accent-subtle: #2a2116;
+  --accent-on: #1a1206;     /* 8.9:1 on accent */
+
+  /* Semantic */
+  --success-fg: #6fdc9d; --success-bg: #11241a; --success-border: #22513a;
+  --warning-fg: #f0d27a; --warning-bg: #262010; --warning-border: #54471f;
+  --danger-fg: #ff8a7a;  --danger-bg: #2a1512;  --danger-border: #5c2a23;
+  --info-fg: #8cc4ff;    --info-bg: #111d2b;    --info-border: #24405f;
+
+  /* Space */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+  /* TV overscan safe area: 5% of width, 4.5% of height; shrinks on phones */
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
+
+  /* Radius by size */
+  --radius-sm: 2px; --radius-md: 4px; --radius-lg: 6px;
+  --border-hairline: 1px solid var(--n-3);
+
+  /* Elevation: player OSD only (it floats over video and auto-hides) */
+  --elevation-overlay: 0 16px 48px rgb(0 0 0 / 0.55);
+
+  /* Motion */
+  --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+  --dur-large: 320ms;
+
+  /* Focus: 3px, it must read across a room */
+  --focus-ring: 3px solid var(--accent);
+  --focus-offset: 3px;
+  --focus-scale: 1.06;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: clamp(16px, 0.75vw + 10px, 24px); }
+body {
+  margin: 0;
+  background: var(--n-0);
+  color: var(--n-6);
+  font-family: var(--font-text);
+  line-height: var(--leading-body);
+}
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ---- Top navigation ----------------------------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: var(--space-6);
+  padding: var(--safe-y) var(--safe-x) var(--space-4);
+  background: var(--n-0);
+}
+.brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600;
+  letter-spacing: var(--tracking-label);
+}
+.brand::before { content: ""; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--accent); }
+.tabs { display: flex; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.tab {
+  min-height: 44px; padding: 0 var(--space-4);
+  border: 0; border-radius: var(--radius-md); background: none;
+  color: var(--n-5);
+  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 500;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  cursor: pointer;
+}
+.tab[aria-current="page"] { color: var(--n-6); box-shadow: inset 0 -3px 0 var(--n-6); }
+.tab:hover { background: var(--n-1); }
+.tab:focus { outline: var(--focus-ring); outline-offset: 0; color: var(--n-6); background: var(--n-1); }
+.status {
+  margin-left: auto;
+  color: var(--n-4);
+  font-family: var(--font-display); font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Resume band (featured area) ---------------------------------- */
+.resume {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+  gap: var(--space-7); align-items: center;
+  margin: var(--space-4) var(--safe-x) var(--space-7);
+  padding-bottom: var(--space-6);
+  border-bottom: var(--border-hairline);
+}
+.label {
+  margin: 0 0 var(--space-2);
+  color: var(--n-4);
+  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 500;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+}
+.resume__title {
+  margin: 0;
+  font-family: var(--font-display); font-size: var(--text-display); font-weight: 600;
+  letter-spacing: var(--tracking-display); line-height: var(--leading-display);
+}
+.resume__meta {
+  margin: var(--space-3) 0 var(--space-5);
+  color: var(--n-5); font-family: var(--font-display); font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.button {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 48px; padding: 0 var(--space-5);
+  border: var(--border-hairline); border-radius: var(--radius-md);
+  background: var(--n-1);
+  font-size: var(--text-base); font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-entry);
+}
+.button:hover { background: var(--n-2); }
+.button--primary { border-color: var(--accent); background: var(--accent); color: var(--accent-on); }
+.button--primary:hover { background: var(--accent-hover); }
+.button--primary:active { background: var(--accent-active); }
+.button:focus { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.resume__art {
+  display: grid; place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: var(--n-1);
+  font-family: var(--font-display); font-size: var(--text-3xl); font-weight: 600;
+  color: var(--n-5); letter-spacing: var(--tracking-label);
+}
+
+/* ---- Rows ---------------------------------------------------------- */
+.row + .row { margin-top: var(--space-6); }
+.row__title {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  margin: 0 var(--safe-x) var(--space-2);
+  font-size: var(--text-lg); font-weight: 600; letter-spacing: var(--tracking-heading);
+}
+.row__count { color: var(--n-4); font-family: var(--font-display); font-size: var(--text-sm); font-weight: 500; }
+.row__list {
+  display: flex; gap: var(--space-5);
+  margin: 0;
+  /* Room for the scaled card and its ring inside the scroll box. */
+  padding: var(--space-4) var(--safe-x) var(--space-3);
+  overflow-x: auto; list-style: none;
+  scroll-padding-inline: var(--safe-x);
+  scrollbar-width: none;
+}
+.row__list::-webkit-scrollbar { display: none; }
+.rows { padding-bottom: var(--space-9); }
+
+.card {
+  display: grid; gap: var(--space-1);
+  width: 13rem; padding: 0;
+  border: 0; background: none; text-align: left;
+  cursor: pointer;
+}
+.card__art {
+  position: relative; display: grid; place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--n-1);
+  transition: transform var(--dur-standard) var(--ease-entry), background var(--dur-micro) var(--ease-entry);
+}
+.card__mono {
+  color: var(--n-5);
+  font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600;
+  letter-spacing: var(--tracking-label);
+}
+.card__no {
+  position: absolute; top: var(--space-2); left: var(--space-2);
+  color: var(--n-4); font-family: var(--font-display); font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.card__name {
+  overflow: hidden; margin-top: var(--space-2);
+  font-size: var(--text-base); font-weight: 600; line-height: var(--leading-ui);
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.card__meta {
+  min-height: 1lh;
+  color: var(--n-4);
+  font-family: var(--font-display); font-size: var(--text-sm); line-height: var(--leading-ui);
+  letter-spacing: 0.02em;
+}
+.card:hover .card__art { background: var(--n-2); }
+/* On a D-pad the focus IS the cursor, so :focus (not only :focus-visible) always shows. */
+.card:focus { outline: none; }
+.card:focus .card__art {
+  background: var(--n-2);
+  outline: var(--focus-ring); outline-offset: var(--focus-offset);
+  transform: scale(var(--focus-scale));
+}
+.card:focus .card__name { color: var(--accent); }
+
+/* ---- Search / favorites grids ------------------------------------- */
+.page { padding: var(--space-4) var(--safe-x) var(--space-9); }
+.page__title {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 600;
+  letter-spacing: var(--tracking-display); line-height: var(--leading-display);
+}
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-6) var(--space-5);
+  margin: 0; padding: var(--space-4) 0 0; list-style: none;
+}
+.grid .card { width: auto; }
+.search {
+  display: flex; align-items: center; gap: var(--space-3);
+  max-width: 40rem;
+  padding: 0 var(--space-4);
+  border: var(--border-hairline); border-radius: var(--radius-md);
+  background: var(--n-1);
+}
+.search:focus-within { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.search__prompt { color: var(--accent); font-family: var(--font-display); font-weight: 600; }
+.search__input {
+  flex: 1; min-width: 0; min-height: 56px;
+  border: 0; background: none; outline: none;
+  font-family: var(--font-display); font-size: var(--text-lg);
+}
+.search__input::placeholder { color: var(--n-4); }
+.hint { margin: var(--space-3) 0 0; color: var(--n-4); font-family: var(--font-display); font-size: var(--text-sm); }
+mark { background: none; color: var(--n-6); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.note { max-width: var(--measure-prose); color: var(--n-5); }
+
+/* ---- Loading / error ---------------------------------------------- */
+.skeleton { background: var(--n-1); border-radius: var(--radius-md); animation: pulse 1.6s var(--ease-entry) infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.45; } }
+.skeleton-row { display: flex; gap: var(--space-5); margin: var(--space-3) 0 var(--space-7); overflow: hidden; }
+.skeleton-card { flex: 0 0 13rem; aspect-ratio: 16 / 9; }
+.skeleton-title { width: 10rem; height: 1.2rem; }
+.problem {
+  max-width: 44rem;
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--danger-border); border-left-width: 4px; border-radius: var(--radius-md);
+  background: var(--danger-bg);
+}
+.problem__title { margin: 0 0 var(--space-2); color: var(--danger-fg); font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600; }
+.problem__body { margin: 0 0 var(--space-5); color: var(--n-6); }
+
+/* ---- Player overlay ------------------------------------------------ */
+.player {
+  position: fixed; inset: 0; z-index: 10;
+  display: grid; place-items: center;
+  background: var(--video);
+}
+.player__picture { color: var(--n-3); font-family: var(--font-display); font-size: 8rem; font-weight: 600; letter-spacing: var(--tracking-label); }
+.player__caption { position: absolute; top: 50%; margin-top: 4.5rem; color: var(--n-4); font-size: var(--text-sm); }
+.osd-top {
+  position: absolute; top: var(--safe-y); left: var(--safe-x);
+  display: flex; align-items: baseline; gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md); background: rgb(11 13 15 / 0.85);
+  box-shadow: var(--elevation-overlay);
+}
+.osd-no { color: var(--accent); font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.osd-name { margin: 0; font-size: var(--text-xl); font-weight: 600; letter-spacing: var(--tracking-heading); }
+.live { color: var(--n-6); font-family: var(--font-display); font-size: var(--text-sm); letter-spacing: var(--tracking-label); }
+.live::before { content: ""; display: inline-block; width: 0.6em; height: 0.6em; margin-right: 0.4em; border-radius: 50%; background: var(--danger-fg); }
+.osd-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-6); align-items: center;
+  padding: var(--space-5) var(--safe-x) var(--safe-y);
+  background: rgb(11 13 15 / 0.92);
+  border-top: var(--border-hairline);
+}
+.zap { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; font-family: var(--font-display); font-size: var(--text-sm); color: var(--n-5); font-variant-numeric: tabular-nums; }
+.zap kbd { display: inline-block; min-width: 2.2em; margin-right: var(--space-2); padding: 0 var(--space-1); border: var(--border-hairline); border-radius: var(--radius-sm); text-align: center; font-family: inherit; color: var(--n-6); }
+.osd-meta { margin: 0; color: var(--n-5); font-family: var(--font-display); font-size: var(--text-sm); }
+.player-notice {
+  position: absolute; top: calc(var(--safe-y) + 5.5rem); left: var(--safe-x);
+  max-width: 36rem; margin: 0; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--warning-border); border-radius: var(--radius-md);
+  background: var(--warning-bg); color: var(--warning-fg);
+}
+.player { animation: enter var(--dur-large) var(--ease-entry); }
+@keyframes enter { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
+
+/* ---- Mockup chrome (not part of the design) ----------------------- */
+.mock {
+  position: fixed; right: 12px; bottom: 12px; z-index: 50;
+  max-width: 30rem;
+  padding: 8px 12px;
+  border: 1px dashed #5b6672; border-radius: 4px;
+  background: #0b0d0fee; color: #b9c2cc;
+  font: 13px/1.45 system-ui, sans-serif;
+}
+.mock summary { cursor: pointer; color: #e4e9ee; }
+.mock p { margin: 6px 0; }
+.mock button { margin: 2px; padding: 4px 8px; border: 1px solid #5b6672; border-radius: 3px; background: #14181c; cursor: pointer; font-size: 12px; }
+
+/* ---- Narrow screens: phones degrade to a stacked layout ----------- */
+@media (max-width: 720px) {
+  .nav { flex-wrap: wrap; gap: var(--space-2); }
+  .nav > nav { order: 3; width: 100%; min-width: 0; }
+  .tabs { overflow-x: auto; }
+  .status { font-size: var(--text-sm); }
+  .mock { left: 12px; max-width: none; }
+  .resume { grid-template-columns: 1fr; gap: var(--space-4); }
+  .resume__art { display: none; }
+  .resume__title { font-size: var(--text-2xl); }
+  .card { width: 10rem; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
+  .osd-bar { grid-template-columns: 1fr; gap: var(--space-3); }
+  .player__picture { font-size: 4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+  /* Focus still has to be obvious without movement: ring + surface + color stay, scale goes. */
+  .card:focus .card__art { transform: none; }
+}
+</style>
+</head>
+<body>
+<header class="nav">
+  <h1 class="brand">IPTV</h1>
+  <nav aria-label="Principal">
+    <ul class="tabs">
+      <li><button class="tab" data-nav data-go="home" aria-current="page">Inicio</button></li>
+      <li><button class="tab" data-nav data-go="search">Buscar</button></li>
+      <li><button class="tab" data-nav data-go="favorites">Favoritos</button></li>
+      <li><button class="tab" data-nav data-go="settings">Lista</button></li>
+    </ul>
+  </nav>
+  <p class="status"><span data-clock>21:04</span> · 15 canales</p>
+</header>
+
+<main>
+  <!-- Home -->
+  <section data-view="home">
+    <section class="resume" aria-labelledby="resume-title">
+      <div>
+        <p class="label">Último canal visto · hace 2 h</p>
+        <h2 class="resume__title" id="resume-title">Telefe</h2>
+        <p class="resume__meta">007 · 1080p · General</p>
+        <div class="actions">
+          <button class="button button--primary" data-nav data-play="7">Seguir viendo</button>
+          <button class="button" data-nav>Quitar de favoritos</button>
+        </div>
+      </div>
+      <div class="resume__art" aria-hidden="true">TE</div>
+    </section>
+    <div class="rows" data-rows></div>
+  </section>
+
+  <!-- Search -->
+  <section class="page" data-view="search" hidden>
+    <h2 class="page__title">Buscar</h2>
+    <label class="search">
+      <span class="search__prompt" aria-hidden="true">&gt;</span>
+      <input class="search__input" type="search" data-nav data-search value="tel" placeholder="Buscá un canal" aria-label="Nombre del canal" autocomplete="off">
+    </label>
+    <p class="hint" data-search-count></p>
+    <ul class="grid" data-search-results></ul>
+  </section>
+
+  <!-- Favorites -->
+  <section class="page" data-view="favorites" hidden>
+    <h2 class="page__title">Favoritos</h2>
+    <p class="note">Los canales que marcaste. También aparecen primero en Inicio.</p>
+    <ul class="grid" data-favorites></ul>
+  </section>
+
+  <!-- Favorites, empty -->
+  <section class="page" data-view="empty" hidden>
+    <h2 class="page__title">Favoritos</h2>
+    <p class="note">Todavía no tenés favoritos. Sirven para tener a mano, desde Inicio, los canales que más mirás.
+      Abrí cualquier canal y elegí <strong>Agregar a favoritos</strong> en la barra del reproductor.</p>
+    <div class="actions"><button class="button button--primary" data-nav data-go="home">Explorar canales</button></div>
+  </section>
+
+  <!-- Playlist source -->
+  <section class="page" data-view="settings" hidden>
+    <h2 class="page__title">Lista de canales</h2>
+    <p class="note">Fuente actual: <code>playlist_argentina.m3u8</code>, 15 canales, cargada hoy a las 20:58.</p>
+    <label class="search" style="max-width:48rem;margin-top:var(--space-5)">
+      <span class="search__prompt" aria-hidden="true">URL</span>
+      <input class="search__input" type="url" data-nav value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_argentina.m3u8" aria-label="URL de la lista">
+    </label>
+    <div class="actions" style="margin-top:var(--space-5)">
+      <button class="button button--primary" data-nav>Cargar lista</button>
+      <button class="button" data-nav>Abrir archivo</button>
+      <button class="button" data-nav>Volver a cargar</button>
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <section class="page" data-view="loading" hidden aria-busy="true">
+    <p class="label">Cargando playlist_argentina.m3u8…</p>
+    <div class="skeleton skeleton-title"></div>
+    <div class="skeleton-row"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
+    <div class="skeleton skeleton-title"></div>
+    <div class="skeleton-row"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
+  </section>
+
+  <!-- Error -->
+  <section class="page" data-view="error" hidden>
+    <div class="problem" role="alert">
+      <p class="problem__title">No se pudo cargar la lista</p>
+      <p class="problem__body">raw.githubusercontent.com no respondió en 15 segundos. Revisá la dirección o tu conexión y volvé a intentar. La última lista que funcionó sigue guardada.</p>
+      <div class="actions">
+        <button class="button button--primary" data-nav>Reintentar</button>
+        <button class="button" data-nav data-go="settings">Cambiar lista</button>
+        <button class="button" data-nav data-go="home">Usar la lista guardada</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Player overlay -->
+<div class="player" data-player role="dialog" aria-modal="true" aria-labelledby="osd-name" hidden>
+  <div class="player__picture" data-osd-mono aria-hidden="true">TE</div>
+  <p class="player__caption">Imagen simulada</p>
+  <div class="osd-top">
+    <span class="osd-no" data-osd-no>007</span>
+    <h2 class="osd-name" id="osd-name" data-osd-name>Telefe</h2>
+    <span class="live">En vivo</span>
+  </div>
+  <p class="player-notice" data-osd-notice role="status" hidden></p>
+  <div class="osd-bar">
+    <div>
+      <p class="osd-meta" data-osd-meta>1080p · General</p>
+      <ul class="zap" aria-label="Cambio de canal">
+        <li><kbd>▲</kbd><span data-zap-up></span></li>
+        <li><kbd>▼</kbd><span data-zap-down></span></li>
+      </ul>
+    </div>
+    <button class="button" data-nav data-fav>Agregar a favoritos</button>
+    <button class="button" data-nav data-close>Volver a los canales</button>
+  </div>
+</div>
+
+<details class="mock">
+  <summary>Opción A: Al Aire · Technical Mono, evolucionado · controles de la maqueta</summary>
+  <p>Toma las filas por categoría, una franja para seguir viendo, el foco que agranda la tarjeta y el zapping de los decodificadores. Lo distinto: franja destacada solo con texto, canales numerados y datos en tipografía monoespaciada.</p>
+  <p>Las flechas mueven el foco · Enter reproduce · Esc o Retroceso vuelve · en el reproductor ▲/▼ cambian de canal. Las teclas 1–8 cambian de estado.</p>
+  <div>
+    <button data-state="home">1 Inicio</button><button data-state="search">2 Buscar</button>
+    <button data-state="favorites">3 Favoritos</button><button data-state="player">4 Reproductor</button>
+    <button data-state="empty">5 Sin favoritos</button><button data-state="loading">6 Cargando</button>
+    <button data-state="error">7 Error</button><button data-state="settings">8 Lista</button>
+  </div>
+  <p><a href="./" style="color:#e4e9ee">Todas las opciones</a></p>
+</details>
+
+<script>
+// Mockup only: sample data, a copy of the app's geometric focus movement, and state switching.
+const CHANNELS = [
+  ['Televisión Pública', '1080p', 'General', []],
+  ['Encuentro', '720p', 'Cultura', []],
+  ['Pakapaka', '720p', 'Infantiles', []],
+  ['DeporTV', '720p', 'Deportes', ['part-time']],
+  ['Cine.AR', '1080p', 'Cine', []],
+  ['El Trece', '1080p', 'General', ['region-locked']],
+  ['Telefe', '1080p', 'General', []],
+  ['América', '720p', 'General', []],
+  ['Net TV', 'SD', 'General', []],
+  ['Telemax', 'SD', 'General', ['region-locked']],
+  ['TN Todo Noticias', '1080p', 'Noticias', ['youtube']],
+  ['C5N', '720p', 'Noticias', ['youtube']],
+  ['LN+', '720p', 'Noticias', []],
+  ['Canal 26', '720p', 'Noticias', []],
+  ['Crónica TV', 'SD', 'Noticias', ['part-time']],
+].map(([name, quality, group, tags], i) => ({ no: i + 1, name, quality, group, tags, mono: monogram(name) }));
+// Display labels for tag identifiers; the identifiers themselves stay in English.
+const TAG_LABELS = { youtube: 'YouTube', 'region-locked': 'Solo Argentina', 'part-time': 'Horario parcial' };
+const tagText = (c) => [c.quality, ...c.tags.map((t) => TAG_LABELS[t])].join(' · ');
+// Categories ordered like groupChannels(): biggest first.
+const GROUPS = [...new Set(CHANNELS.map((c) => c.group))]
+  .sort((a, b) => CHANNELS.filter((c) => c.group === b).length - CHANNELS.filter((c) => c.group === a).length);
+const FAVORITES = [7, 11, 4, 3];
+
+// Proposed monogram rule (see PLAN.md): short names whole, CamelCase capitals, else initials.
+function monogram(name) {
+  const compact = name.replace(/\s/g, '');
+  if (compact.length <= 4) return compact.toUpperCase();
+  const words = name.split(/[^\p{L}\p{N}+]+/u).filter(Boolean);
+  if (words.length === 1) {
+    const caps = words[0].match(/[\p{Lu}\p{N}]/gu) || [];
+    return (caps.length >= 2 ? caps.join('').slice(0, 3) : words[0].slice(0, 2)).toUpperCase();
+  }
+  if (/^[\p{Lu}\p{N}]{2,3}$/u.test(words[0])) return words[0];
+  return words.slice(0, 2).map((w) => (/^\p{N}+$/u.test(w) ? w : w[0])).join('').toUpperCase();
+}
+const pad = (n) => String(n).padStart(3, '0');
+const byNo = (no) => CHANNELS.find((c) => c.no === no);
+const metaOf = tagText;
+const esc = (s) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+function card(c, nameHtml = esc(c.name)) {
+  return `<li><button class="card" data-nav data-play="${c.no}">
+    <span class="card__art"><span class="card__no">${pad(c.no)}</span><span class="card__mono" aria-hidden="true">${esc(c.mono)}</span></span>
+    <span class="card__name">${nameHtml}</span><span class="card__meta">${metaOf(c)}</span></button></li>`;
+}
+function row(title, list) {
+  return `<section class="row"><h2 class="row__title">${title}<span class="row__count">${pad(list.length).slice(1)}</span></h2>
+    <ul class="row__list">${list.map((c) => card(c)).join('')}</ul></section>`;
+}
+document.querySelector('[data-rows]').innerHTML =
+  row('Favoritos', FAVORITES.map(byNo)) + GROUPS.map((g) => row(g, CHANNELS.filter((c) => c.group === g))).join('');
+document.querySelector('[data-favorites]').innerHTML = FAVORITES.map(byNo).map((c) => card(c)).join('');
+
+const searchInput = document.querySelector('[data-search]');
+function runSearch() {
+  const q = searchInput.value.trim().toLowerCase();
+  const hits = q ? CHANNELS.filter((c) => c.name.toLowerCase().includes(q)) : [];
+  document.querySelector('[data-search-count]').textContent = q
+    ? (hits.length
+      ? `${hits.length} de ${CHANNELS.length} canales coinciden con “${searchInput.value.trim()}”. Bajá con ▼ para ver los resultados.`
+      : `Ningún canal coincide con “${searchInput.value.trim()}”. Revisá cómo lo escribiste o probá con otra parte del nombre.`)
+    : 'Escribí parte del nombre de un canal. En el televisor se abre el teclado del sistema.';
+  document.querySelector('[data-search-results]').innerHTML = hits.map((c) => {
+    const i = c.name.toLowerCase().indexOf(q);
+    return card(c, esc(c.name.slice(0, i)) + '<mark>' + esc(c.name.slice(i, i + q.length)) + '</mark>' + esc(c.name.slice(i + q.length)));
+  }).join('');
+}
+searchInput.addEventListener('input', runSearch);
+runSearch();
+const clock = document.querySelector('[data-clock]');
+clock.textContent = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+// ---- Screens ----------------------------------------------------------
+const player = document.querySelector('[data-player]');
+let screen = 'home';
+let current = 7;
+let returnFocus = null;
+
+function show(name) {
+  if (name === 'player') return openPlayer(current);
+  closePlayer(false);
+  screen = name;
+  document.querySelectorAll('[data-view]').forEach((v) => { v.hidden = v.dataset.view !== name; });
+  const tabName = name === 'empty' ? 'favorites' : name;
+  document.querySelectorAll('.tab').forEach((t) => t.toggleAttribute('aria-current', t.dataset.go === tabName));
+  if (name === 'home') focus(document.querySelector('.row__list [data-nav]'));
+  else focus(document.querySelector(`[data-view="${name}"] [data-nav]`));
+}
+function openPlayer(no) {
+  returnFocus = document.activeElement;
+  current = no;
+  player.hidden = false;
+  renderOsd();
+  focus(player.querySelector('[data-fav]'));
+}
+function closePlayer(restore = true) {
+  if (player.hidden) return;
+  player.hidden = true;
+  if (restore && returnFocus) focus(returnFocus);
+}
+function renderOsd() {
+  const c = byNo(current);
+  const up = byNo(current === 1 ? CHANNELS.length : current - 1);
+  const down = byNo(current === CHANNELS.length ? 1 : current + 1);
+  player.querySelector('[data-osd-no]').textContent = pad(c.no);
+  player.querySelector('[data-osd-name]').textContent = c.name;
+  player.querySelector('[data-osd-mono]').textContent = c.mono;
+  player.querySelector('[data-osd-meta]').textContent = `${metaOf(c)} · ${c.group}`;
+  player.querySelector('[data-zap-up]').textContent = `${pad(up.no)} ${up.name}`;
+  player.querySelector('[data-zap-down]').textContent = `${pad(down.no)} ${down.name}`;
+  player.querySelector('[data-fav]').textContent = FAVORITES.includes(c.no) ? 'Quitar de favoritos' : 'Agregar a favoritos';
+  const notice = player.querySelector('[data-osd-notice]');
+  notice.hidden = !c.tags.includes('region-locked') && !c.tags.includes('part-time');
+  notice.textContent = c.tags.includes('region-locked')
+    ? 'Solo Argentina: esta señal se puede ver únicamente desde Argentina. Presioná ▼ para pasar al canal siguiente.'
+    : 'Horario parcial: puede que este canal no esté transmitiendo ahora. Presioná ▼ para pasar al canal siguiente.';
+}
+
+// ---- Focus movement (same algorithm as src/ui/spatial-nav.js) ---------
+function focus(el) { if (!el) return; el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+function visible(el) { return el.getClientRects().length > 0; }
+function nearest(from, dir, scope) {
+  const a = from.getBoundingClientRect(); let best = null; let bestScore = Infinity;
+  for (const el of scope.querySelectorAll('[data-nav]')) {
+    if (el === from || !visible(el)) continue;
+    const b = el.getBoundingClientRect();
+    const ac = { x: a.left + a.width / 2, y: a.top + a.height / 2 }, bc = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    const [p, s] = { right: [b.left - a.right + 1, Math.abs(bc.y - ac.y)], left: [a.left - b.right + 1, Math.abs(bc.y - ac.y)],
+      down: [b.top - a.bottom + 1, Math.abs(bc.x - ac.x)], up: [a.top - b.bottom + 1, Math.abs(bc.x - ac.x)] }[dir];
+    if (p <= 0) continue;
+    const score = p + s * 3;
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  return best;
+}
+const DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+document.addEventListener('keydown', (e) => {
+  const inField = e.target instanceof HTMLInputElement;
+  if (!inField && /^[1-8]$/.test(e.key)) {
+    return show(['home', 'search', 'favorites', 'player', 'empty', 'loading', 'error', 'settings'][+e.key - 1]);
+  }
+  if (e.key === 'Escape' || (e.key === 'Backspace' && !inField)) {
+    e.preventDefault();
+    if (!player.hidden) return closePlayer();
+    if (screen !== 'home') return show('home');
+    return;
+  }
+  const dir = DIRS[e.key];
+  if (!dir) return;
+  if (!player.hidden && (dir === 'up' || dir === 'down')) {
+    e.preventDefault();
+    current = dir === 'up' ? (current === 1 ? CHANNELS.length : current - 1) : (current === CHANNELS.length ? 1 : current + 1);
+    return renderOsd();
+  }
+  if (inField && (dir === 'left' || dir === 'right')) return;
+  const scope = player.hidden ? document : player;
+  const from = document.activeElement?.matches?.('[data-nav]') ? document.activeElement : null;
+  const next = from ? nearest(from, dir, scope) : scope.querySelector('[data-nav]');
+  if (next) { e.preventDefault(); focus(next); }
+});
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-play],[data-go],[data-close],[data-state]');
+  if (!t) return;
+  if (t.dataset.play) openPlayer(+t.dataset.play);
+  else if (t.dataset.go) show(t.dataset.go);
+  else if (t.hasAttribute('data-close')) closePlayer();
+  else show(t.dataset.state);
+});
+// Deep links: option-x.html#player, #search, #error… open that state directly.
+const initial = location.hash.slice(1);
+show(['home', 'search', 'favorites', 'player', 'empty', 'loading', 'error', 'settings'].includes(initial) ? initial : 'home');
+</script>
+</body>
+</html>

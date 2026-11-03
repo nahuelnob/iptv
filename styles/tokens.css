@@ -1,93 +1,75 @@
-/* Direction: Technical Mono, dark-first.
-   A channel guide is a data surface (numbers, resolutions, counts) watched from a couch,
-   so dark is the only theme: a light TV UI glares in a dim room.
-   Accent is an amber "on air" tally light, used for focus and the primary action only. */
-
+/* Design tokens: option C "Mosaico del Living" (design/options/option-c-header-2.html).
+   Soft Tactile, warm dark neutrals (hue ~60), one teal accent. Dark only by product decision. */
 :root {
   color-scheme: dark;
 
-  /* ---- Type --------------------------------------------------------- */
-  --font-display: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --font-text: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-display);
-
-  /* Ratio 1.25: dense UI. Root size scales with the screen for 10-foot viewing (see app.css). */
-  --text-2xs: 0.64rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --font-display: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-text: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
   --text-base: 1rem;
   --text-lg: 1.25rem;
   --text-xl: 1.563rem;
   --text-2xl: 1.953rem;
   --text-3xl: 2.441rem;
-
+  --text-display: 3.052rem;
   --tracking-display: -0.03em;
-  --tracking-heading: -0.01em;
-  --tracking-body: 0;
-  --tracking-label: 0.08em;
+  --tracking-heading: -0.02em;
+  --tracking-label: 0.06em;
+  --leading-display: 1.05;
+  --leading-ui: 1.3;
+  --leading-body: 1.55;
+  --measure-narrow: 48ch;
 
-  --leading-display: 1.1;
-  --leading-heading: 1.3;
-  --leading-body: 1.6;
-  --leading-ui: 1.35;
+  /* Warm neutrals, hue ~60 */
+  --n-0: #16130f;   /* page */
+  --n-1: #211d18;   /* tile A, chips */
+  --n-2: #2d2822;   /* tile B */
+  --n-3: #3a342d;   /* tile C, focused surfaces */
+  --n-4: #a0958a;   /* muted: 6.3:1 on n-0, 5.0:1 on n-2 */
+  --n-5: #d3cabf;   /* secondary: 9.0:1 on n-2 */
+  --n-6: #f5f0ea;   /* ink: 10.9:1 on n-3 */
+  --video: #0c0a08;
 
-  --measure-prose: 64ch;
+  /* Accent: teal */
+  --accent: #4fd1bc;        /* 9.9:1 on n-0 */
+  --accent-hover: #6fdcca;
+  --accent-active: #34b8a3;
+  --accent-subtle: #13302b;
+  --accent-subtle-hover: #18403a;
+  --accent-on: #08201c;     /* 9.1:1 on accent */
 
-  /* ---- Neutrals: cool blue-gray, hue ~210 ---------------------------- */
-  --n-0: #0b0d0f;  /* page background */
-  --n-1: #14181c;  /* raised surface: cards, topbar */
-  --n-2: #252c33;  /* hairline borders */
-  --n-3: #8b96a3;  /* muted foreground, 6.9:1 on n-0 */
-  --n-4: #b9c2cc;  /* secondary foreground */
-  --n-5: #e4e9ee;  /* primary ink */
+  --success-fg: #8fd99a; --success-bg: #14231a; --success-border: #2c5536;
+  --warning-fg: #f2cf7e; --warning-bg: #2a2212; --warning-border: #5d4b22;
+  --danger-fg: #ff9f8c;  --danger-bg: #2c1713;  --danger-border: #6b3025;
+  --info-fg: #9cc8f5;    --info-bg: #15202b;    --info-border: #2d4a66;
 
-  /* ---- Accent: amber tally --------------------------------------------- */
-  --accent: #f2a33c;
-  --accent-hover: #f5b45e;
-  --accent-active: #d98b25;
-  --accent-subtle: #2a2116;
-  --accent-on: #1a1206;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+  /* TV overscan safe area. */
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
 
-  /* ---- Semantic ----------------------------------------------------- */
-  --danger-fg: #ff8a7a; --danger-bg: #2a1512; --danger-border: #5c2a23;
-  --success-fg: #6fdc9d; --success-bg: #11241a; --success-border: #22513a;
+  --radius-sm: 10px;  /* chips, keys, buttons */
+  --radius-md: 16px;  /* tiles */
+  --radius-lg: 24px;  /* panels */
+  --border-hairline: 1px solid var(--n-3);
 
-  /* ---- Space -------------------------------------------------------- */
-  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
-  --space-5: 24px;  --space-6: 32px;  --space-7: 48px;  --space-8: 64px;
-  --space-9: 96px;
+  /* The one soft shadow: things that float over content (zapping strip, drawer). */
+  --elevation-overlay: 0 20px 60px rgb(0 0 0 / 0.5);
 
-  /* ---- Radius ------------------------------------------------------- */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-
-  --border-hairline: 1px solid var(--n-2);
-
-  /* ---- Elevation: the player overlay only ---------------------------- */
-  --elevation-overlay: 0 24px 64px rgb(0 0 0 / 0.6);
-
-  /* ---- Motion ------------------------------------------------------- */
   --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --dur-micro: 120ms;
   --dur-standard: 200ms;
+  --dur-large: 320ms;
 
-  /* ---- Focus: thick on purpose, it must read from across a room ------ */
-  --focus-ring: 3px solid var(--accent);
-  --focus-offset: 3px;
-}
+  --focus-ring: 4px solid var(--accent);
+  --focus-offset: 4px;
+  --focus-scale: 1.08;
 
-*:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  /* Side rail. Equal padding on both sides keeps the icons centred; the full --safe-x read as
+     an empty gap inside a rail with its own background, and Android TV does not overscan the left edge. */
+  --rail-pad: clamp(12px, 1.5vw, 32px);
+  --rail-w: calc(2 * var(--rail-pad) + 3.2rem);
 }

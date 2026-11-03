@@ -6,10 +6,15 @@ A web IPTV player for M3U playlists, designed for keyboard and TV-remote (D-pad)
 
 ```bash
 npm start   # http://localhost:5173
-npm test    # parser tests (node:test, no dependencies)
+npm test    # domain tests (node:test, no dependencies)
 ```
 
-Paste a playlist URL or open an `.m3u` file. Use only playlists you have the right to watch.
+Open **Lista** and paste a playlist URL or open an `.m3u` file; the last URL that worked loads on start.
+Use only playlists you have the right to watch. The interface is in Argentine Spanish.
+
+Remote / keyboard: arrows move, OK (Enter) plays, ◀ from the first column opens the menu and categories,
+Back (Esc) undoes one step (menu → header → section → category). While watching, ▲ ▼ (or CH+ CH-) change
+channel within the list you came from. Holding OK on a channel (or pressing F) adds or removes a favorite.
 
 Argentine free-to-air channels, curated by Free-TV (no pay channels):
 `https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_argentina.m3u8`
@@ -25,10 +30,17 @@ YouTube channels play through YouTube's official embed. Channels listed by name
 | Path | Role |
 |------|------|
 | `src/domain/playlist.js` | Pure M3U parsing and category grouping. No DOM, tested in Node. |
-| `src/infra/playlist-source.js` | Loading playlists from a URL or a local file. |
-| `src/ui/spatial-nav.js` | Arrow-key focus movement between `[data-nav]` elements. |
-| `src/ui/channel-rows.js` | Category rows of channel cards (presentational). |
-| `src/ui/player.js` | Full-screen player: hls.js, native HLS fallback. |
+| `src/domain/library.js` | Favorites and last watched, keyed by stream URL. |
+| `src/domain/search.js` | Channel search ignoring case and accents. |
+| `src/domain/zapping.js` | Channel above/below and the neighbor strip while watching. |
+| `src/domain/monogram.js` | Channel initials shown when there is no logo. |
+| `src/infra/playlist-source.js` | Loading playlists from a URL (15 s timeout) or a local file. |
+| `src/infra/library-store.js` | Saving the library in `localStorage`, tolerant of storage errors. |
+| `src/ui/spatial-nav.js` | Arrow-key focus movement between `[data-nav]` elements, scopes and zones. |
+| `src/ui/back-stack.js` | Back for the browse layer through history, so the TV Back key works. |
+| `src/ui/section-nav.js` | Side rail, breadcrumb and the menu/categories drawer. |
+| `src/ui/tiles.js` | Channel tiles of the mosaic (presentational). |
+| `src/ui/player.js` | Full-screen player: hls.js, native HLS fallback, YouTube embed, ▲ ▼ zapping. |
 | `src/main.js` | Wires everything together. |
 
 ## Known browser limits

@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opción C · Header 1: Dos niveles (opciones de diseño IPTV)</title>
+<!--
+  Option C "Mosaico del Living", header variant 1: "Dos niveles" (two tiers). UI copy in Argentine Spanish (es-AR).
+  Only the header differs from option-c.html; tokens, grid, search, panels and player are copied verbatim.
+  Tier 1 = navigation: brand, section tabs (text + underline bar), list context and a 24 h clock.
+  Tier 2 = filters: a "Categorías" strip of pill chips with counts, horizontally scrollable, with fade masks and
+          "◀ n" / "n más ▶" counters at the edges so a 21-category list never looks truncated by accident.
+  Navigation and filters differ by shape (tabs vs pills), by tier and by a hairline + label between them.
+  D-pad: ▲ from the grid lands on the active category chip, ▲ again on the active tab; ▼ walks back down.
+          Back from the header returns to the grid; Back in the grid with a category clears it to "Todos".
+  Borrowed: two-row headers of streaming apps (section tabs over genre chips, YouTube TV / Netflix web).
+  Different: counts on every chip, explicit edge counters instead of a bare fade, the strip only exists in Inicio.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+
+  --font-display: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-text: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display: 3.052rem;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-label: 0.06em;
+  --leading-display: 1.05;
+  --leading-ui: 1.3;
+  --leading-body: 1.55;
+  --measure-narrow: 48ch;
+
+  /* Warm neutrals, hue ~60 */
+  --n-0: #16130f;   /* page */
+  --n-1: #211d18;   /* tile A, chips */
+  --n-2: #2d2822;   /* tile B */
+  --n-3: #3a342d;   /* tile C, focused surfaces */
+  --n-4: #a0958a;   /* muted: 6.3:1 on n-0, 5.0:1 on n-2 */
+  --n-5: #d3cabf;   /* secondary: 9.0:1 on n-2 */
+  --n-6: #f5f0ea;   /* ink: 10.9:1 on n-3 */
+  --video: #0c0a08;
+
+  /* Accent: teal */
+  --accent: #4fd1bc;        /* 9.9:1 on n-0 */
+  --accent-hover: #6fdcca;
+  --accent-active: #34b8a3;
+  --accent-subtle: #13302b;
+  --accent-subtle-hover: #18403a;
+  --accent-on: #08201c;     /* 9.1:1 on accent */
+
+  --success-fg: #8fd99a; --success-bg: #14231a; --success-border: #2c5536;
+  --warning-fg: #f2cf7e; --warning-bg: #2a2212; --warning-border: #5d4b22;
+  --danger-fg: #ff9f8c;  --danger-bg: #2c1713;  --danger-border: #6b3025;
+  --info-fg: #9cc8f5;    --info-bg: #15202b;    --info-border: #2d4a66;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
+
+  --radius-sm: 10px;  /* chips, keys, buttons */
+  --radius-md: 16px;  /* tiles */
+  --radius-lg: 24px;  /* panels */
+  --border-hairline: 1px solid var(--n-3);
+
+  /* The one soft shadow: things that float over video (zapping strip). */
+  --elevation-overlay: 0 20px 60px rgb(0 0 0 / 0.5);
+
+  --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+  --dur-large: 320ms;
+
+  --focus-ring: 4px solid var(--accent);
+  --focus-offset: 4px;
+  --focus-scale: 1.08;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: clamp(16px, 0.75vw + 10px, 24px); }
+body { margin: 0; background: var(--n-0); color: var(--n-6); font-family: var(--font-text); line-height: var(--leading-body); }
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ---- Brand + status (shared by the three header variants) ---------- */
+.brand { display: flex; align-items: center; gap: var(--space-3); margin: 0; font-size: var(--text-xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: 1; white-space: nowrap; }
+.brand__mark { display: grid; place-items: center; flex: none; width: 2.2rem; height: 2.2rem; border-radius: var(--radius-sm); background: var(--n-6); color: var(--n-0); }
+.brand__mark svg { width: 1.4rem; height: 1.4rem; }
+.status { display: grid; justify-items: end; gap: 2px; margin: 0 0 0 auto; white-space: nowrap; }
+.status__clock { font-size: var(--text-xl); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.status__context { color: var(--n-4); font-size: var(--text-sm); }
+.icon { width: 1.4rem; height: 1.4rem; flex: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Info line: names whatever is focused -------------------------- */
+.info { min-height: 6.2rem; padding: var(--space-3) var(--safe-x) var(--space-4); }
+.info__name { margin: 0; font-size: var(--text-display); font-weight: 700; letter-spacing: var(--tracking-display); line-height: var(--leading-display); }
+.info__meta { margin: var(--space-2) 0 0; color: var(--n-5); font-size: var(--text-base); }
+.info__meta b { color: var(--warning-fg); font-weight: 700; }
+
+/* ---- Tile grid ----------------------------------------------------- */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: var(--space-5);
+  margin: 0; padding: var(--space-3) var(--safe-x) var(--space-9);
+  list-style: none;
+}
+.tile {
+  position: relative; display: grid; place-items: center;
+  width: 100%; aspect-ratio: 4 / 3; padding: var(--space-3);
+  border: 0; border-radius: var(--radius-md); background: var(--n-1);
+  cursor: pointer;
+  transition: transform var(--dur-standard) var(--ease-entry), background var(--dur-micro) var(--ease-entry);
+}
+.tile[data-shade="1"] { background: var(--n-2); }
+.tile[data-shade="2"] { background: var(--n-3); }
+.tile__mono { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.01em; color: var(--n-6); }
+.tile__name {
+  position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-2);
+  overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-align: left; text-overflow: ellipsis; white-space: nowrap;
+}
+.tile__fav { position: absolute; top: var(--space-2); right: var(--space-3); color: var(--n-5); font-size: var(--text-sm); }
+.tile:hover { background: var(--n-3); }
+.tile:focus { outline: var(--focus-ring); outline-offset: var(--focus-offset); transform: scale(var(--focus-scale)); z-index: 1; }
+.tile:focus .tile__name { color: var(--n-6); }
+/* Continue watching: double width, left-aligned text instead of a monogram. */
+.tile--wide { grid-column: span 2; height: 100%; aspect-ratio: auto; place-items: end start; padding: var(--space-5); background: var(--accent-subtle); }
+.tile--wide:hover { background: var(--accent-subtle-hover); }
+.tile__kicker { display: block; color: var(--accent); font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.tile__big { display: block; font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); text-align: left; }
+.tile--wide:focus { transform: scale(1.04); }
+
+/* ---- Search with on-screen keyboard -------------------------------- */
+.search { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-7); padding: var(--space-3) var(--safe-x) var(--space-9); }
+.query { min-height: 3.6rem; margin: 0 0 var(--space-4); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); background: var(--n-1); font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); }
+.query:empty::before { content: "Buscá un canal"; color: var(--n-4); font-weight: 400; }
+.query::after { content: ""; display: inline-block; width: 3px; height: 1em; margin-left: 2px; vertical-align: -0.12em; background: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.keys { display: grid; grid-template-columns: repeat(6, 3rem); gap: var(--space-2); }
+.key {
+  min-height: 3rem; border: 0; border-radius: var(--radius-sm); background: var(--n-1);
+  font-size: var(--text-lg); font-weight: 700; cursor: pointer;
+}
+.key--wide { grid-column: span 2; font-size: var(--text-base); }
+.key--space { grid-column: span 3; }
+.key:hover { background: var(--n-2); }
+.key:focus { outline: var(--focus-ring); outline-offset: 2px; background: var(--n-3); }
+.search .grid { padding: 0; }
+.results__label { margin: 0 0 var(--space-4); color: var(--n-5); }
+mark { background: none; color: inherit; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
+
+/* ---- Messages ------------------------------------------------------ */
+.panel { max-width: 40rem; margin: var(--space-5) var(--safe-x); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--n-1); }
+.panel h2 { margin: 0 0 var(--space-2); font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); }
+.panel p { max-width: var(--measure-narrow); margin: 0 0 var(--space-5); color: var(--n-5); }
+.panel--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); }
+.panel--error h2 { color: var(--danger-fg); }
+.button { min-height: 48px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-sm); background: var(--n-2); font-weight: 700; cursor: pointer; }
+.button + .button { margin-left: var(--space-2); }
+.button:hover { background: var(--n-3); }
+.button--primary { background: var(--accent); color: var(--accent-on); }
+.button--primary:hover { background: var(--accent-hover); }
+.button:focus { outline: var(--focus-ring); outline-offset: 3px; }
+.field { display: block; width: 100%; min-height: 52px; margin: 0 0 var(--space-4); padding: 0 var(--space-4); border: var(--border-hairline); border-radius: var(--radius-sm); background: var(--n-0); font-size: var(--text-sm); }
+.field:focus { outline: var(--focus-ring); outline-offset: 2px; }
+.skel { aspect-ratio: 4 / 3; border-radius: var(--radius-md); background: var(--n-1); animation: pulse 1.6s var(--ease-entry) infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+/* ---- Player -------------------------------------------------------- */
+.player { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: var(--video); }
+.player__picture { color: var(--n-2); font-size: 9rem; font-weight: 700; }
+.player__caption { position: absolute; top: 50%; margin-top: 5rem; color: var(--n-4); font-size: var(--text-sm); }
+.player__title { position: absolute; top: var(--safe-y); left: var(--safe-x); margin: 0; padding: var(--space-2) var(--space-5); border-radius: 999px; background: rgb(22 19 15 / 0.85); font-size: var(--text-lg); font-weight: 700; }
+.player__title span { margin-left: var(--space-3); color: var(--n-5); font-weight: 400; }
+.player__notice { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: var(--safe-x); max-width: 34rem; margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-fg); }
+.strip {
+  position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y);
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg); background: rgb(33 29 24 / 0.94);
+  box-shadow: var(--elevation-overlay);
+  transition: transform var(--dur-large) var(--ease-entry), opacity var(--dur-standard) var(--ease-entry);
+}
+.strip[data-collapsed] { transform: translateY(30%); opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
+.strip__list { display: flex; gap: var(--space-3); margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; }
+.mini { flex: 1; min-width: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--n-2); }
+.mini b { display: block; font-size: var(--text-lg); }
+.mini span { display: block; overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.mini[aria-current="true"] { background: var(--n-6); color: var(--n-0); }
+.mini[aria-current="true"] span { color: var(--n-1); }
+.strip__hint { margin: 0; color: var(--n-5); font-size: var(--text-sm); white-space: nowrap; }
+
+/* ---- Mockup chrome (not part of the design) ----------------------- */
+.mock { position: fixed; right: 12px; bottom: 12px; z-index: 50; max-width: 30rem; padding: 8px 12px; border: 1px dashed #6d645a; border-radius: 6px; background: #16130fee; color: #d3cabf; font: 13px/1.45 system-ui, sans-serif; }
+.mock summary { cursor: pointer; color: #f5f0ea; }
+.mock p { margin: 6px 0; }
+.mock button { margin: 2px; padding: 4px 8px; border: 1px solid #6d645a; border-radius: 4px; background: #211d18; cursor: pointer; font-size: 12px; }
+
+/* ---- Header variant 1: two tiers ------------------------------------ */
+.head { padding: var(--safe-y) var(--safe-x) 0; }
+.bar { display: flex; align-items: center; gap: var(--space-7); }
+.tabs { display: flex; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.tab {
+  position: relative; min-height: 48px; padding: 0 var(--space-4);
+  border: 0; border-radius: var(--radius-sm); background: none;
+  color: var(--n-5); font-size: var(--text-lg); white-space: nowrap; cursor: pointer;
+}
+.tab:hover { background: var(--n-1); }
+.tab[aria-current="page"] { color: var(--n-6); font-weight: 700; }
+/* Active section = ink + weight + a bar under the label (shape, not only colour). */
+.tab[aria-current="page"]::after { content: ""; position: absolute; left: var(--space-4); right: var(--space-4); bottom: 2px; height: 4px; border-radius: 2px; background: var(--n-6); }
+.tab:focus { outline: var(--focus-ring); outline-offset: 2px; }
+
+.cats { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4); padding-top: var(--space-3); border-top: var(--border-hairline); }
+.cats__label { flex: none; margin: 0 var(--space-2) 0 0; color: var(--n-4); font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.cats__cue { flex: none; min-width: 4.6rem; color: var(--n-5); font-size: var(--text-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cats__cue--start { min-width: 2.6rem; text-align: right; }
+.cats__cue[data-empty] { visibility: hidden; }
+.cats__viewport {
+  --fade-start: 0px; --fade-end: 0px;
+  position: relative; flex: 1; min-width: 0;
+  overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 3.5rem;
+  /* Functional edge cue, not decoration: the fade appears only on the side that has more chips. */
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+}
+.cats__viewport::-webkit-scrollbar { display: none; }
+.cats__viewport[data-more-start] { --fade-start: 3rem; }
+.cats__viewport[data-more-end] { --fade-end: 3rem; }
+.cats__list { display: flex; gap: var(--space-2); width: max-content; margin: 0; padding: var(--space-3) 8px; list-style: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 48px; padding: 0 var(--space-4);
+  border: 0; border-radius: 999px; background: var(--n-1);
+  color: var(--n-5); font-size: var(--text-base); white-space: nowrap;
+  cursor: pointer; transition: background var(--dur-micro) var(--ease-entry);
+}
+.chip__count { color: var(--n-4); font-size: var(--text-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
+.chip:hover { background: var(--n-2); }
+/* Active category = inverted pill + weight. */
+.chip[aria-pressed="true"] { background: var(--n-6); color: var(--n-0); font-weight: 700; }
+.chip[aria-pressed="true"] .chip__count { color: var(--n-2); }
+.chip:focus { outline: var(--focus-ring); outline-offset: 2px; }
+.info { padding-top: var(--space-4); }
+
+@media (max-width: 720px) {
+  .mock { left: 12px; max-width: none; }
+  .info__name { font-size: var(--text-2xl); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .search { grid-template-columns: 1fr; }
+  .keys { display: none; }            /* phones have a real keyboard */
+  .query { display: none; }
+  .search__native { display: block !important; }
+  .strip { flex-wrap: wrap; }
+  .mini:nth-child(1), .mini:nth-child(5) { display: none; }
+  .player__picture { font-size: 4rem; }
+  .bar { flex-wrap: wrap; gap: var(--space-3); }
+  .tabs { order: 3; width: 100%; overflow-x: auto; }
+  .cats__label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .tile:focus, .tile--wide:focus { transform: none; }
+  .strip[data-collapsed] { transform: none; }
+  .query::after { animation: none; }
+}
+</style>
+</head>
+<body>
+<header class="head" data-header>
+  <div class="bar">
+    <h1 class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 3l4 4 4-4"/></svg></span>IPTV</h1>
+    <nav aria-label="Secciones">
+      <ul class="tabs" data-zone="nav">
+        <li><button class="tab" data-nav data-go="home">Inicio</button></li>
+        <li><button class="tab" data-nav data-go="search">Buscar</button></li>
+        <li><button class="tab" data-nav data-go="favorites">Favoritos</button></li>
+        <li><button class="tab" data-nav data-go="settings">Lista</button></li>
+      </ul>
+    </nav>
+    <p class="status"><span class="status__clock" data-clock>21:04</span><span class="status__context" data-context></span></p>
+  </div>
+  <div class="cats" data-cats-row>
+    <p class="cats__label" id="cats-label">Categorías</p>
+    <span class="cats__cue cats__cue--start" data-cue-start aria-hidden="true"></span>
+    <div class="cats__viewport" data-cats-viewport>
+      <ul class="cats__list" aria-labelledby="cats-label" data-zone="cats" data-cats></ul>
+    </div>
+    <span class="cats__cue" data-cue-end aria-hidden="true"></span>
+  </div>
+</header>
+
+<main data-zone="content">
+  <section data-view="grid">
+    <div class="info" aria-live="polite">
+      <h2 class="info__name" data-info-name>Telefe</h2>
+      <p class="info__meta" data-info-meta>1080p · General</p>
+    </div>
+    <ul class="grid" data-grid></ul>
+  </section>
+
+  <section class="search" data-view="search" hidden>
+    <div>
+      <p class="query" data-query aria-live="polite">TE</p>
+      <input class="field search__native" type="search" data-nav aria-label="Nombre del canal" hidden>
+      <div class="keys" role="group" aria-label="Teclado en pantalla" data-keys></div>
+    </div>
+    <div>
+      <p class="results__label" data-results-label></p>
+      <ul class="grid" data-results></ul>
+    </div>
+  </section>
+
+  <section data-view="message" hidden><div data-message></div></section>
+</main>
+
+
+<div class="player" data-player role="dialog" aria-modal="true" aria-labelledby="p-title" hidden>
+  <div class="player__picture" data-v-mono aria-hidden="true">TE</div>
+  <p class="player__caption">Imagen simulada</p>
+  <p class="player__title" id="p-title"><span data-p-no style="margin:0 var(--space-3) 0 0">7</span><b data-p-name>Telefe</b><span data-p-meta>1080p</span></p>
+  <p class="player__notice" data-p-notice role="status" hidden></p>
+  <div class="strip" data-strip>
+    <ul class="strip__list" data-strip-list aria-label="Canales cercanos"></ul>
+    <button class="button" data-nav data-fav>Agregar a favoritos</button>
+    <button class="button" data-nav data-close>Volver</button>
+  </div>
+</div>
+
+
+<details class="mock">
+  <summary>Opción C · Header 1: Dos niveles · controles de la maqueta</summary>
+  <p>Arriba la navegación (pestañas con barra), abajo los filtros (chips con cantidad) en una tira que se desplaza, con contadores en los bordes. ▲ desde la grilla va a la categoría activa; ▲ otra vez, a la sección activa. Volver regresa a la grilla y, desde la grilla, a «Todos».</p>
+  <p>Teclas: 1–8 estados · 9 alterna la lista (21 ↔ 6 categorías) · 0 recorre las categorías. En la lista de 21 categorías, los 15 canales de muestra aparecen en varias categorías; esas asignaciones son ilustrativas.</p>
+  <div>
+    <button data-state="home">1 Inicio</button><button data-state="search">2 Buscar</button>
+    <button data-state="favorites">3 Favoritos</button><button data-state="player">4 Reproductor</button>
+    <button data-state="empty">5 Sin favoritos</button><button data-state="loading">6 Cargando</button>
+    <button data-state="error">7 Error</button><button data-state="settings">8 Lista</button>
+    <button data-list>9 Cambiar lista</button><button data-state="cats">0 Categorías</button>
+  </div>
+  <p><a href="option-c-header-2.html" style="color:#f5f0ea">Header 2</a> · <a href="option-c-header-3.html" style="color:#f5f0ea">Header 3</a> · <a href="option-c.html" style="color:#f5f0ea">Opción C original</a> · <a href="./" style="color:#f5f0ea">Todas las opciones</a></p>
+</details>
+
+<script>
+// Mockup only: sample data, focus movement, state switching.
+// The header variant script below defines: renderHeader(), openCategories(), closeCategories(restore),
+// categoriesOpen(), overlayScope() and landing(from, dir, next).
+const CHANNELS = [
+  // name, quality, groups in the short list, groups in the long (iptv-org style) list, tags
+  ['Televisión Pública', '1080p', ['General'], ['General', 'Deportes', 'Cultura', 'Educación'], []],
+  ['Encuentro', '720p', ['Cultura'], ['Cultura', 'Documentales', 'Educación', 'Viajes'], []],
+  ['Pakapaka', '720p', ['Infantiles'], ['Infantiles', 'Animación', 'Educación', 'Familia'], []],
+  ['DeporTV', '720p', ['Deportes'], ['Deportes', 'Aire libre'], ['part-time']],
+  ['Cine.AR', '1080p', ['Cine'], ['Cine', 'Series', 'Clásicos'], []],
+  ['El Trece', '1080p', ['General'], ['General', 'Entretenimiento', 'Series'], ['region-locked']],
+  ['Telefe', '1080p', ['General'], ['General', 'Entretenimiento', 'Humor', 'Familia'], []],
+  ['América', '720p', ['General'], ['General', 'Entretenimiento', 'Estilo de vida'], []],
+  ['Net TV', 'SD', ['General'], ['General', 'Música', 'Humor'], []],
+  ['Telemax', 'SD', ['General'], ['General', 'Música', 'Cocina', 'Religión'], ['region-locked']],
+  ['TN Todo Noticias', '1080p', ['Noticias'], ['Noticias'], ['youtube']],
+  ['C5N', '720p', ['Noticias'], ['Noticias'], ['youtube']],
+  ['LN+', '720p', ['Noticias'], ['Noticias'], []],
+  ['Canal 26', '720p', ['Noticias'], ['Noticias', 'Estilo de vida'], []],
+  ['Crónica TV', 'SD', ['Noticias'], ['Noticias', 'Otros'], ['part-time']],
+].map(([name, quality, short, long, tags], i) => ({ no: i + 1, name, quality, short, long, tags, mono: monogram(name) }));
+// Display labels for tag identifiers; the identifiers themselves stay in English.
+const TAG_LABELS = { youtube: 'YouTube', 'region-locked': 'Solo Argentina', 'part-time': 'Horario parcial' };
+let FAVORITES = [7, 11, 4, 3];
+const LAST_WATCHED = 7;
+
+// Two sample lists: the short Free-TV list (6 categories) and an iptv-org style list (21 categories).
+// In the long list the 15 sample channels belong to several groups (M3U allows "A;B") so every category
+// has something to show. Those assignments are illustrative, not real.
+const LISTS = {
+  long: { file: 'ar.m3u', host: 'iptv-org.github.io', url: 'https://iptv-org.github.io/iptv/countries/ar.m3u' },
+  short: { file: 'playlist_argentina.m3u8', host: 'raw.githubusercontent.com', url: 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_argentina.m3u8' },
+};
+let listKey = 'long';
+const list = () => LISTS[listKey];
+const groupsOf = (c) => (listKey === 'long' ? c.long : c.short);
+// Categories ordered like groupChannels(): biggest first, "Otros" last.
+function categories() {
+  const counts = new Map();
+  for (const c of CHANNELS) for (const g of groupsOf(c)) counts.set(g, (counts.get(g) || 0) + 1);
+  return [...counts].map(([name, count]) => ({ name, count }))
+    .sort((a, b) => (a.name === 'Otros') - (b.name === 'Otros') || b.count - a.count);
+}
+const categoryLabel = (cat) => (cat === 'all' ? 'Todos los canales' : cat);
+
+function monogram(name) {
+  const compact = name.replace(/\s/g, '');
+  if (compact.length <= 4) return compact.toUpperCase();
+  const words = name.split(/[^\p{L}\p{N}+]+/u).filter(Boolean);
+  if (words.length === 1) {
+    const caps = words[0].match(/[\p{Lu}\p{N}]/gu) || [];
+    return (caps.length >= 2 ? caps.join('').slice(0, 3) : words[0].slice(0, 2)).toUpperCase();
+  }
+  if (/^[\p{Lu}\p{N}]{2,3}$/u.test(words[0])) return words[0];
+  return words.slice(0, 2).map((w) => (/^\p{N}+$/u.test(w) ? w : w[0])).join('').toUpperCase();
+}
+// Stable shade from the name: tiles differ by lightness only, so the accent stays the only hue.
+const shade = (name) => [...name].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) >>> 0, 7) % 3;
+const byNo = (no) => CHANNELS.find((c) => c.no === no);
+const esc = (s) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const $ = (s, r = document) => r.querySelector(s);
+const primaryGroup = (c) => (category !== 'all' && groupsOf(c).includes(category) ? category : groupsOf(c)[0]);
+const metaOf = (c) => {
+  const notes = c.tags.filter((t) => t === 'region-locked' || t === 'part-time');
+  const plain = [c.quality, primaryGroup(c), c.tags.includes('youtube') ? 'YouTube' : null].filter(Boolean).join(' · ');
+  return plain + (notes.length ? ' · <b>' + notes.map((t) => TAG_LABELS[t]).join(', ') + '</b>' : '');
+};
+
+function tile(c, nameHtml = esc(c.name)) {
+  const fav = FAVORITES.includes(c.no) ? '<span class="tile__fav">Favorito</span>' : '';
+  return `<li><button class="tile" data-nav data-play="${c.no}" data-shade="${shade(c.name)}" aria-label="${esc(c.name)}">
+    ${fav}<span class="tile__mono" aria-hidden="true">${esc(c.mono)}</span><span class="tile__name" aria-hidden="true">${nameHtml}</span></button></li>`;
+}
+function continueTile(c) {
+  return `<li class="tile-wide-slot" style="grid-column: span 2"><button class="tile tile--wide" data-nav data-play="${c.no}">
+    <span><span class="tile__kicker">Seguir viendo</span><span class="tile__big">${esc(c.name)}</span></span></button></li>`;
+}
+
+// ---- State -------------------------------------------------------------
+// section = where you are (header navigation); category = which filter applies inside Inicio.
+let section = 'home';
+let category = 'all';
+let screen = 'home';
+const SECTION_LABELS = { home: 'Inicio', search: 'Buscar', favorites: 'Favoritos', settings: 'Lista' };
+const STATES = ['home', 'search', 'favorites', 'player', 'empty', 'loading', 'error', 'settings', 'cats'];
+
+function setView(name) { document.querySelectorAll('[data-view]').forEach((v) => { v.hidden = v.dataset.view !== name; }); }
+const channelsIn = (cat) => (cat === 'all' ? CHANNELS : CHANNELS.filter((c) => groupsOf(c).includes(cat)));
+function renderGrid() {
+  setView('grid');
+  const items = section === 'favorites' ? FAVORITES.map(byNo) : channelsIn(category);
+  const lead = section === 'home' && category === 'all' ? continueTile(byNo(LAST_WATCHED)) : '';
+  $('[data-grid]').innerHTML = lead + items.map((c) => tile(c)).join('');
+}
+function message(html) { setView('message'); $('[data-message]').innerHTML = html; }
+function renderContext() {
+  const text = screen === 'loading' ? `Cargando ${list().file}…` : `${list().file} · ${CHANNELS.length} canales`;
+  document.querySelectorAll('[data-context]').forEach((el) => { el.textContent = text; });
+}
+function tick() {
+  const time = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  document.querySelectorAll('[data-clock]').forEach((el) => { el.textContent = time; });
+}
+
+const KEYS = [...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789'];
+$('[data-keys]').innerHTML = KEYS.map((k) => `<button class="key" data-nav data-key="${k}">${k}</button>`).join('')
+  + '<button class="key key--wide key--space" data-nav data-key=" ">Espacio</button><button class="key key--wide" data-nav data-key="del">Borrar</button>';
+let query = 'TE';
+function runSearch() {
+  $('[data-query]').textContent = query;
+  const q = query.trim().toLowerCase();
+  const fold = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const hits = q ? CHANNELS.filter((c) => fold(c.name).includes(fold(q))) : [];
+  $('[data-results-label]').textContent = q ? (hits.length ? `${hits.length} de ${CHANNELS.length} canales coinciden. Presioná ▶ para llegar a ellos.` : `Ningún canal coincide con “${query.trim()}”. Revisá cómo lo escribiste o probá con otra parte del nombre.`) : 'Empezá a escribir; los resultados aparecen acá.';
+  $('[data-results]').innerHTML = hits.map((c) => {
+    const i = fold(c.name).indexOf(fold(q));
+    return tile(c, esc(c.name.slice(0, i)) + '<mark>' + esc(c.name.slice(i, i + q.length)) + '</mark>' + esc(c.name.slice(i + q.length)));
+  }).join('');
+}
+
+let lastContentFocus = null;
+const isShown = (el) => el && el.isConnected && el.getClientRects().length > 0;
+function focusGrid() {
+  focus($('[data-grid] [data-play]:not(.tile--wide)') || $('[data-view]:not([hidden]) [data-nav]'));
+}
+function focusContent() {
+  if (isShown(lastContentFocus)) focus(lastContentFocus); else focusGrid();
+}
+
+function show(name) {
+  if (name === 'player') return openPlayer(current);
+  closePlayer(false);
+  if (categoriesOpen()) closeCategories(false);
+  if (name === 'cats') { show('home'); return openCategories(); }
+  screen = name;
+  section = { empty: 'favorites', loading: 'home', error: 'home' }[name] || name;
+  renderHeader(); renderContext();
+  if (name === 'home' || name === 'favorites') { renderGrid(); return focusGrid(); }
+  if (name === 'search') { setView('search'); runSearch(); return focus($('[data-key="L"]')); }
+  if (name === 'empty') {
+    message(`<div class="panel"><h2>Todavía no tenés favoritos</h2><p>Los favoritos reúnen en un solo lugar los canales que más mirás. Mientras se reproduce un canal, elegí <strong>Agregar a favoritos</strong> en la tira de abajo.</p>
+      <button class="button button--primary" data-nav data-go="home">Ver todos los canales</button></div>`);
+  }
+  if (name === 'loading') {
+    setView('grid');
+    $('[data-info-name]').textContent = 'Cargando canales…'; $('[data-info-meta]').textContent = list().file;
+    $('[data-grid]').innerHTML = '<li class="skel" aria-hidden="true"></li>'.repeat(12);
+    return;
+  }
+  if (name === 'error') {
+    message(`<div class="panel panel--error" role="alert"><h2>No se pudo cargar la lista</h2><p>${list().host} no respondió en 15 segundos. Revisá la dirección o tu conexión y volvé a intentar. La última lista que funcionó sigue guardada.</p>
+      <button class="button button--primary" data-nav>Reintentar</button><button class="button" data-nav data-go="settings">Cambiar lista</button></div>`);
+  }
+  if (name === 'settings') {
+    message(`<div class="panel"><h2>Lista de canales</h2><p>${list().file} · ${CHANNELS.length} canales · ${categories().length} categorías · cargada hoy a las 20:58.</p>
+      <input class="field" type="url" data-nav aria-label="URL de la lista" value="${list().url}">
+      <button class="button button--primary" data-nav>Cargar lista</button><button class="button" data-nav>Abrir archivo</button></div>`);
+  }
+  focus($('[data-view="message"] [data-nav]'));
+}
+function setCategory(cat) {
+  if (categoriesOpen()) closeCategories(false);
+  category = cat; screen = 'home'; section = 'home';
+  renderHeader(); renderContext(); renderGrid(); focusGrid();
+}
+function toggleList() {
+  listKey = listKey === 'long' ? 'short' : 'long';
+  if (!categories().some((c) => c.name === category)) category = 'all';
+  show(['home', 'favorites', 'search', 'settings'].includes(screen) ? screen : 'home');
+}
+// Back, in order: player → open category overlay → header back to the grid → section back to Inicio → filter back to Todos.
+function back() {
+  if (!player.hidden) return closePlayer();
+  if (categoriesOpen()) return closeCategories(true);
+  const inHeader = document.activeElement?.closest('[data-header]');
+  if (inHeader && (screen === 'home' || screen === 'favorites')) return focusContent();
+  if (screen !== 'home') return show('home');
+  if (category !== 'all') return setCategory('all');
+}
+
+document.addEventListener('focusin', (e) => {
+  if (e.target.closest('main')) lastContentFocus = e.target;
+  const t = e.target.closest('[data-play]');
+  if (!t) return;
+  const c = byNo(+t.dataset.play);
+  $('[data-info-name]').textContent = t.classList.contains('tile--wide') ? `Seguir viendo: ${c.name}` : c.name;
+  $('[data-info-meta]').innerHTML = metaOf(c);
+});
+
+// ---- Player ------------------------------------------------------------
+const player = $('[data-player]');
+let current = 7;
+let returnFocus = null;
+let stripTimer;
+function peekStrip() {
+  $('[data-strip]').removeAttribute('data-collapsed');
+  clearTimeout(stripTimer);
+  stripTimer = setTimeout(() => $('[data-strip]').setAttribute('data-collapsed', ''), 5000);
+}
+function openPlayer(no) {
+  returnFocus = document.activeElement?.matches('[data-nav]') ? document.activeElement : null;
+  current = no; player.hidden = false; renderPlayer(); peekStrip(); focus($('[data-fav]'));
+}
+function closePlayer(restore = true) {
+  if (player.hidden) return;
+  player.hidden = true;
+  if (restore && returnFocus) focus(returnFocus);
+}
+function renderPlayer() {
+  const c = byNo(current);
+  const i = CHANNELS.indexOf(c);
+  $('[data-p-no]').textContent = c.no;
+  $('[data-p-name]').textContent = c.name;
+  $('[data-p-meta]').textContent = c.quality;
+  $('[data-v-mono]').textContent = c.mono;
+  $('[data-strip-list]').innerHTML = [-2, -1, 0, 1, 2].map((d) => CHANNELS[(i + d + CHANNELS.length) % CHANNELS.length])
+    .map((x) => `<li class="mini" aria-current="${x === c}"><b>${esc(x.mono)}</b><span>${esc(x.name)}</span></li>`).join('');
+  $('[data-fav]').textContent = FAVORITES.includes(c.no) ? 'Quitar de favoritos' : 'Agregar a favoritos';
+  const n = $('[data-p-notice]');
+  n.hidden = !c.tags.some((t) => t === 'region-locked' || t === 'part-time');
+  n.textContent = c.tags.includes('region-locked') ? 'Solo Argentina: esta señal se puede ver únicamente desde Argentina. Presioná ▼ para pasar al canal siguiente.' : 'Horario parcial: puede que este canal no esté transmitiendo ahora. Presioná ▼ para pasar al canal siguiente.';
+}
+
+// ---- Focus movement (same algorithm as src/ui/spatial-nav.js) ---------
+function focus(el) { if (!el) return; el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+function nearest(from, dir, scope) {
+  const a = from.getBoundingClientRect(); let best = null; let bestScore = Infinity;
+  for (const el of scope.querySelectorAll('[data-nav]')) {
+    if (el === from || !el.getClientRects().length) continue;
+    const b = el.getBoundingClientRect();
+    const ac = { x: a.left + a.width / 2, y: a.top + a.height / 2 }, bc = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    const [p, s] = { right: [b.left - a.right + 1, Math.abs(bc.y - ac.y)], left: [a.left - b.right + 1, Math.abs(bc.y - ac.y)],
+      down: [b.top - a.bottom + 1, Math.abs(bc.x - ac.x)], up: [a.top - b.bottom + 1, Math.abs(bc.x - ac.x)] }[dir];
+    if (p <= 0) continue;
+    const score = p + s * 3;
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  return best;
+}
+// Entering another zone lands on its current item (active section, active category, last tile),
+// not on whatever happens to be geometrically nearest.
+function zoneEntry(from, next) {
+  if (!from || !next) return next;
+  const a = from.closest('[data-zone]'), b = next.closest('[data-zone]');
+  if (!b || a === b) return next;
+  if (b.dataset.zone === 'content') return isShown(lastContentFocus) && b.contains(lastContentFocus) ? lastContentFocus : next;
+  const entry = b.matches('[data-entry]') ? b : b.querySelector('[data-entry]');
+  return isShown(entry) ? entry : next;
+}
+const DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+document.addEventListener('keydown', (e) => {
+  const inField = e.target instanceof HTMLInputElement;
+  const typing = screen === 'search' && player.hidden && !categoriesOpen();
+  if (!inField && !typing && /^[0-9]$/.test(e.key)) {
+    if (e.key === '9') return toggleList();
+    return show(e.key === '0' ? 'cats' : STATES[+e.key - 1]);
+  }
+  if (typing && !inField && /^[\p{L}\p{N}]$/u.test(e.key) && !e.ctrlKey && !e.metaKey) { query += e.key.toUpperCase(); return runSearch(); }
+  if (typing && !inField && e.key === 'Backspace' && query) { e.preventDefault(); query = query.slice(0, -1); return runSearch(); }
+  if (e.key === 'Escape' || (e.key === 'Backspace' && !inField)) { e.preventDefault(); return back(); }
+  // While the strip is hidden, the first non-arrow key only brings it back, so nothing invisible gets activated.
+  if (!player.hidden && $('[data-strip]').hasAttribute('data-collapsed') && !DIRS[e.key]) { e.preventDefault(); return peekStrip(); }
+  const dir = DIRS[e.key];
+  if (!dir) return;
+  if (!player.hidden && (dir === 'up' || dir === 'down')) {
+    e.preventDefault();
+    const i = CHANNELS.indexOf(byNo(current));
+    current = CHANNELS[(i + (dir === 'up' ? -1 : 1) + CHANNELS.length) % CHANNELS.length].no;
+    renderPlayer(); return peekStrip();
+  }
+  if (!player.hidden) peekStrip();
+  if (inField && (dir === 'left' || dir === 'right')) return;
+  e.preventDefault();
+  const scope = !player.hidden ? player : (overlayScope() || document);
+  const from = document.activeElement?.matches?.('[data-nav]') ? document.activeElement : null;
+  const next = player.hidden
+    ? landing(from, dir, from ? nearest(from, dir, scope) : scope.querySelector('[data-nav]'))
+    : (from ? nearest(from, dir, scope) : scope.querySelector('[data-nav]'));
+  if (next) focus(next);
+});
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-play],[data-go],[data-cat],[data-open-cats],[data-key],[data-close],[data-state],[data-fav],[data-list]');
+  if (!t) return;
+  if (t.hasAttribute('data-fav')) {
+    FAVORITES = FAVORITES.includes(current) ? FAVORITES.filter((n) => n !== current) : [...FAVORITES, current];
+    return renderPlayer();
+  }
+  if (t.dataset.key) {
+    const k = t.dataset.key;
+    query = k === 'del' ? query.slice(0, -1) : query + k;
+    return runSearch();
+  }
+  if (t.dataset.play) return openPlayer(+t.dataset.play);
+  if (t.hasAttribute('data-close')) return closePlayer();
+  if (t.hasAttribute('data-list')) return toggleList();
+  if (t.dataset.state) return show(t.dataset.state);
+  if (t.hasAttribute('data-open-cats')) return openCategories();
+  if (t.dataset.cat) return setCategory(t.dataset.cat);
+  if (t.dataset.go) return show(t.dataset.go);
+});
+$('.search__native').addEventListener('input', (e) => { query = e.target.value.toUpperCase(); runSearch(); });
+
+// ---- Header variant 1: two tiers ---------------------------------------
+const catsViewport = $('[data-cats-viewport]');
+function renderHeader() {
+  document.querySelectorAll('.tab').forEach((t) => {
+    const on = t.dataset.go === section;
+    t.setAttribute('aria-current', on ? 'page' : 'false');
+    t.toggleAttribute('data-entry', on);
+  });
+  const row = $('[data-cats-row]');
+  row.hidden = section !== 'home';
+  const all = [{ name: 'all', count: CHANNELS.length }, ...categories()];
+  $('[data-cats]').innerHTML = all.map((c) => {
+    const on = c.name === category;
+    return `<li><button class="chip" data-nav data-cat="${esc(c.name)}" aria-pressed="${on}"${on ? ' data-entry' : ''}>${esc(c.name === 'all' ? 'Todos' : c.name)}<span class="chip__count">${c.count}</span></button></li>`;
+  }).join('');
+  if (!row.hidden) centerActive();
+}
+// Keep the active chip in view, centred when possible.
+function centerActive() {
+  const active = $('[data-cats] [data-entry]');
+  catsViewport.scrollLeft = Math.max(0, active.offsetLeft - (catsViewport.clientWidth - active.offsetWidth) / 2);
+  updateEdges();
+}
+// Edge cues: how many chips are (partly) hidden on each side.
+function updateEdges() {
+  const box = catsViewport.getBoundingClientRect();
+  let before = 0;
+  let after = 0;
+  catsViewport.querySelectorAll('.chip').forEach((chip) => {
+    const r = chip.getBoundingClientRect();
+    if (r.left < box.left + 1) before += 1;
+    else if (r.right > box.right - 1) after += 1;
+  });
+  const start = $('[data-cue-start]');
+  const end = $('[data-cue-end]');
+  start.textContent = `◀ ${before}`;
+  end.textContent = `${after} más ▶`;
+  start.toggleAttribute('data-empty', before === 0);
+  end.toggleAttribute('data-empty', after === 0);
+  catsViewport.toggleAttribute('data-more-start', before > 0);
+  catsViewport.toggleAttribute('data-more-end', after > 0);
+}
+catsViewport.addEventListener('scroll', updateEdges, { passive: true });
+// focusin fires inside focus(), before the scrollIntoView that follows; a microtask recounts after that scroll.
+catsViewport.addEventListener('focusin', () => queueMicrotask(updateEdges));
+window.addEventListener('resize', () => { if (!$('[data-cats-row]').hidden) updateEdges(); });
+// Chip widths change when the web font arrives: recount (and re-centre unless the user is in the strip).
+document.fonts?.ready.then(() => {
+  if ($('[data-cats-row]').hidden) return;
+  if (document.activeElement?.closest('[data-cats]')) updateEdges(); else centerActive();
+});
+// No overlay in this variant: categories are always on screen in Inicio.
+function categoriesOpen() { return false; }
+function overlayScope() { return null; }
+function closeCategories() {}
+// State "0": walk into the strip to show the scrolled state with both edge counters.
+function openCategories() {
+  const chips = [...document.querySelectorAll('[data-cats] .chip')];
+  focus(chips[Math.min(13, chips.length - 1)]);
+}
+function landing(from, dir, next) { return zoneEntry(from, next); }
+
+// Deep links: #player, #search, #cats… open that state. Extra tokens after "+": "corta" loads the
+// short list, a category name preselects it (e.g. #home+Clásicos).
+const [initial, ...options] = location.hash.slice(1).split('+').map((part) => decodeURIComponent(part));
+if (options.includes('corta')) listKey = 'short';
+const startCategory = options.find((o) => categories().some((c) => c.name === o));
+if (startCategory) category = startCategory;
+tick();
+setInterval(tick, 15000);
+show(STATES.includes(initial) ? initial : 'home');
+</script>
+</body>
+</html>

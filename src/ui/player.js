@@ -3,60 +3,188 @@
 // Native support alone is not enough: recent Chrome answers "maybe" to canPlayType for HLS
 // but reports errors with far less detail than hls.js.
 // YouTube channels play through the official embed in an iframe instead.
-import { isBack } from './keys.js';
+//
+// ▲ ▼ (and CH+ CH-) switch to the channel above/below in the list the viewer came from.
+// The title pill and the bottom strip are the only controls: they hide after a few idle seconds.
+import { isBack, channelStepOf, directionOf } from './keys.js';
 import { focusElement } from './spatial-nav.js';
+import { qualityLabel } from './tiles.js';
+import { monogram } from '../domain/monogram.js';
+import { neighborChannel, neighborWindow } from '../domain/zapping.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
 
-export function createPlayer(root) {
+// Holding ▼ walks the strip without starting a stream per channel (PLAN section 3).
+const ZAP_DELAY_MS = 400;
+const IDLE_MS = 4000;
+// If history.back() produces no popstate (seen once in testing, cause unknown), close anyway.
+const CLOSE_FALLBACK_MS = 600;
+const GENERIC_CAUSE = 'La señal no responde o el navegador no la admite.';
+
+export function createPlayer(root, {
+  isFavorite = () => false,
+  onToggleFavorite = () => false,
+  onWatch = () => {},
+  onClose = () => {},
+  numberOf = () => '',
+} = {}) {
   const video = root.querySelector('video');
   const embed = root.querySelector('[data-player-embed]');
-  const title = root.querySelector('[data-player-title]');
+  const number = root.querySelector('[data-player-no]');
+  const title = root.querySelector('[data-player-name]');
   const meta = root.querySelector('[data-player-meta]');
+  const notice = root.querySelector('[data-player-notice]');
   const status = root.querySelector('[data-player-status]');
+  const stripList = root.querySelector('[data-strip-list]');
+  const favoriteButton = root.querySelector('[data-player-fav]');
+  const unmuteButton = root.querySelector('[data-player-unmute]');
   const closeButton = root.querySelector('[data-player-close]');
   let hls = null;
   let current = null; // the playback attempt in progress; late errors from older ones are ignored
   let returnFocusTo = null;
+  let channel = null;
+  let opened = null;
+  let list = [];
+  let zapTimer = null;
+  let idleTimer = null;
+  let closing = false;
+  let closeFallback = null;
+  let fullscreenOwned = false;
+  let reenterFullscreen = false; // reopened while the previous exit was still in progress
 
   closeButton.addEventListener('click', close);
+  favoriteButton.addEventListener('click', () => {
+    onToggleFavorite(channel);
+    renderFavorite();
+  });
+  unmuteButton.addEventListener('click', () => {
+    video.muted = false;
+    unmuteButton.hidden = true;
+    focusElement(closeButton);
+  });
+
   root.addEventListener('keydown', (event) => {
     if (isBack(event)) {
       event.preventDefault();
       close();
+      return;
     }
+    const step = channelStepOf(event);
+    if (step) {
+      event.preventDefault();
+      wake();
+      zap(step);
+      return;
+    }
+    // While the controls are hidden, the first key only brings them back, so nothing invisible gets activated.
+    const idle = root.hasAttribute('data-idle');
+    wake();
+    if (idle && !directionOf(event)) event.preventDefault();
   });
+  root.addEventListener('pointermove', wake);
+
   // On Android TV browsers (and Capacitor's WebView) the remote's Back key never reaches the page
   // as a key: it navigates history. Opening the player pushes a history entry, so Back pops it.
   window.addEventListener('popstate', () => {
     if (!root.hidden) hide();
   });
-  video.addEventListener('playing', () => setStatus(null));
-  video.addEventListener('waiting', () => setStatus('Buffering…'));
 
-  function open(channel) {
+  // Chrome consumes Esc in fullscreen and only reports fullscreenchange: leaving fullscreen closes the player.
+  for (const type of ['fullscreenchange', 'webkitfullscreenchange']) {
+    document.addEventListener(type, () => {
+      if (fullscreenElement() === root) {
+        fullscreenOwned = true;
+      } else if (reenterFullscreen) {
+        // The exit belongs to the previous channel; the reopened player asks again now that it finished.
+        reenterFullscreen = false;
+        if (!root.hidden) enterFullscreen();
+      } else if (fullscreenOwned) {
+        fullscreenOwned = false;
+        if (!root.hidden) close();
+      }
+    });
+  }
+
+  video.addEventListener('playing', () => setStatus(null));
+  video.addEventListener('waiting', () => setStatus('Cargando…'));
+
+  // list: the channels the viewer was browsing, in order (category, favorites, search results…).
+  function open(selected, browsingList = [selected]) {
     returnFocusTo = document.activeElement;
-    title.textContent = channel.name;
-    meta.textContent = [channel.quality, channel.groups.join(' / ')].filter(Boolean).join(' · ');
+    opened = selected;
+    list = browsingList.includes(selected) ? browsingList : [selected];
+    closing = false;
     root.hidden = false;
+    // Must run inside the OK/click that opened the player: browsers require a user gesture for it.
+    enterFullscreen();
     if (!history.state?.player) history.pushState({ player: true }, '');
-    focusElement(closeButton);
-    if (parseYouTubeUrl(channel.url)) playYouTube(channel.url);
-    else play(channel.url);
+    show(selected);
+    focusElement(favoriteButton);
+    wake();
+    start(selected);
+  }
+
+  function zap(step) {
+    const next = neighborChannel(list, channel, step);
+    if (next === channel) return;
+    teardown();
+    show(next);
+    setStatus(`Conectando con ${next.name}…`);
+    clearTimeout(zapTimer);
+    zapTimer = setTimeout(() => start(next), ZAP_DELAY_MS);
+  }
+
+  function start(target) {
+    if (target !== channel || root.hidden) return;
+    onWatch(target);
+    if (parseYouTubeUrl(target.url)) playYouTube(target.url);
+    else play(target.url);
+  }
+
+  function show(target) {
+    channel = target;
+    number.textContent = numberOf(target);
+    title.textContent = target.name;
+    meta.textContent = qualityLabel(target.quality) ?? '';
+    meta.hidden = !target.quality;
+    renderFavorite();
+    stripList.replaceChildren(...neighborWindow(list, target).map((neighbor) => {
+      const item = document.createElement('li');
+      item.className = 'mini';
+      item.setAttribute('aria-current', String(neighbor === target));
+      const mono = document.createElement('b');
+      mono.textContent = monogram(neighbor.name);
+      const name = document.createElement('span');
+      name.textContent = neighbor.name;
+      item.append(mono, name);
+      return item;
+    }));
+    const warnings = [
+      target.geoBlocked ? 'Solo Argentina: esta señal se puede ver únicamente desde Argentina.' : null,
+      target.unstable ? 'Horario parcial: puede que este canal no esté transmitiendo ahora.' : null,
+    ].filter(Boolean);
+    notice.hidden = !warnings.length;
+    notice.textContent = warnings.length ? `${warnings.join(' ')} Presioná ▼ para pasar al canal siguiente.` : '';
+  }
+
+  function renderFavorite() {
+    const favorite = isFavorite(channel);
+    favoriteButton.setAttribute('aria-pressed', String(favorite));
+    favoriteButton.setAttribute('aria-label', favorite ? 'Quitar de favoritos' : 'Agregar a favoritos');
   }
 
   function playYouTube(url) {
     teardown();
     const src = youtubeEmbedUrl(url, KNOWN_YOUTUBE_CHANNELS);
     if (!src) {
-      return fail('This YouTube channel is listed by name and its channel ID is unknown. Add it to src/data/youtube-channels.js.');
+      return fail('Este canal de YouTube figura por nombre y no se conoce su ID: hay que agregarlo en src/data/youtube-channels.js.');
     }
     video.hidden = true;
     embed.hidden = false;
     embed.src = src;
     // The embed reports nothing back without the IFrame API, so explain the likely causes up front.
-    setStatus('If YouTube shows an error, the channel is not live right now or does not allow embedding.');
+    setStatus('Si YouTube muestra un error, el canal no está transmitiendo ahora o no permite verse fuera de YouTube.');
     setTimeout(() => { if (embed.src === src) setStatus(null); }, 6000);
   }
 
@@ -64,10 +192,10 @@ export function createPlayer(root) {
     teardown();
     const attempt = { url, viaProxy };
     current = attempt;
-    setStatus(viaProxy ? 'Blocked by the browser. Retrying through the local dev proxy…' : 'Connecting…');
+    setStatus(viaProxy ? 'El navegador bloqueó la señal. Reintentando con el proxy local…' : `Conectando con ${channel.name}…`);
 
     if (!viaProxy && location.protocol === 'https:' && url.startsWith('http:')) {
-      return retryOrFail(attempt, 'This channel streams over plain HTTP, which browsers block on HTTPS pages.');
+      return retryOrFail(attempt, 'La señal usa HTTP y el navegador la bloquea en las páginas HTTPS.');
     }
 
     const src = viaProxy ? devProxyUrl(url) : url;
@@ -86,28 +214,54 @@ export function createPlayer(root) {
     } else {
       video.src = src;
     }
-
-    video.play().catch(() => { /* autoplay may need a gesture; the controls stay available */ });
+    autoplay(attempt);
   }
 
-  async function retryOrFail(attempt, message) {
+  // Without native controls nothing else could start playback: if sound is refused, play muted
+  // and offer "Activar sonido".
+  function autoplay(attempt) {
+    video.play().catch((error) => {
+      if (error?.name !== 'NotAllowedError' || current !== attempt) return;
+      video.muted = true;
+      unmuteButton.hidden = false;
+      video.play().catch(() => {});
+    });
+  }
+
+  async function retryOrFail(attempt, cause) {
     if (!attempt.viaProxy && await devProxyAvailable() && current === attempt) {
       return play(attempt.url, { viaProxy: true });
     }
-    if (current === attempt) fail(attempt.viaProxy ? 'The channel did not answer, even through the dev proxy. It is probably offline.' : message);
+    if (current === attempt) {
+      fail(attempt.viaProxy ? 'La señal no respondió, ni siquiera a través del proxy local. Probablemente esté fuera del aire.' : cause);
+    }
   }
 
   // Closing from the UI (button, Esc) goes through history too, so no stale entry is left behind.
   function close() {
-    if (root.hidden) return;
-    if (history.state?.player) history.back();
-    else hide();
+    if (root.hidden || closing) return;
+    closing = true;
+    if (history.state?.player) {
+      history.back();
+      closeFallback = setTimeout(() => { if (!root.hidden) hide(); }, CLOSE_FALLBACK_MS);
+    } else {
+      hide();
+    }
   }
 
   function hide() {
+    clearTimeout(closeFallback);
+    clearTimeout(zapTimer);
+    clearTimeout(idleTimer);
     teardown();
     root.hidden = true;
+    closing = false;
+    // Forget ownership before exiting, so the late exit event cannot close a player reopened meanwhile.
+    fullscreenOwned = false;
+    reenterFullscreen = false;
+    exitFullscreen();
     if (returnFocusTo?.isConnected) focusElement(returnFocusTo);
+    onClose(opened);
   }
 
   function teardown() {
@@ -121,31 +275,63 @@ export function createPlayer(root) {
     embed.removeAttribute('src');
   }
 
-  function fail(message) {
+  function fail(cause) {
     teardown();
-    setStatus(message, true);
+    setStatus(`No se pudo reproducir ${channel.name}. ${cause} Presioná ▼ para pasar al canal siguiente.`, true);
   }
 
   function setStatus(message, isError = false) {
     status.hidden = !message;
     status.textContent = message ?? '';
     status.classList.toggle('player__status--error', isError);
+    // The controls stay up while a message is showing; the idle countdown restarts when it clears.
+    wake();
+  }
+
+  function wake() {
+    root.removeAttribute('data-idle');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (status.hidden && !root.hidden) root.setAttribute('data-idle', '');
+    }, IDLE_MS);
+  }
+
+  function enterFullscreen() {
+    const request = root.requestFullscreen ?? root.webkitRequestFullscreen;
+    if (!request) return;
+    if (fullscreenElement()) {
+      reenterFullscreen = true; // the previous exit is still running; ask again when it ends
+      return;
+    }
+    try {
+      request.call(root)?.catch?.(() => { /* webviews without fullscreen: the overlay is full-window anyway */ });
+    } catch { /* same */ }
+  }
+
+  function exitFullscreen() {
+    if (fullscreenElement() !== root) return;
+    const exit = document.exitFullscreen ?? document.webkitExitFullscreen;
+    try { exit?.call(document)?.catch?.(() => {}); } catch { /* already out */ }
   }
 
   video.addEventListener('error', () => {
     // Native playback reports no cause, so a CORS block looks like any other failure: try the proxy.
     if (!hls && video.error && current) {
-      retryOrFail(current, 'This stream format is not supported by the browser, or the channel is offline.');
+      retryOrFail(current, 'El navegador no admite el formato de esta señal, o el canal está fuera del aire.');
     }
   });
 
-  return { open, close };
+  return { open, close, isOpen: () => !root.hidden, refreshFavorite: () => channel && renderFavorite() };
+}
+
+function fullscreenElement() {
+  return document.fullscreenElement ?? document.webkitFullscreenElement ?? null;
 }
 
 function describeHlsError(data) {
   if (data.type === 'networkError') {
-    return 'The channel is offline or blocks browser playback (CORS). It may still work on a TV box app.';
+    return 'La señal está fuera del aire o bloquea la reproducción en el navegador (CORS). Puede que funcione en la app del TV box.';
   }
-  if (data.type === 'mediaError') return 'The stream uses a format the browser cannot decode.';
-  return 'Playback failed for this channel.';
+  if (data.type === 'mediaError') return 'La señal usa un formato que el navegador no puede decodificar.';
+  return GENERIC_CAUSE;
 }

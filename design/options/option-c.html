@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opción C: Mosaico del Living (opciones de diseño IPTV)</title>
+<!--
+  Option C: "Mosaico del Living" (Living Room Tiles). UI copy in Argentine Spanish (es-AR).
+  Direction: Soft Tactile, re-tuned dark and warm (a TV in a living room, not a dashboard).
+  Tokens: Hanken Grotesk 400/700. Warm neutrals (hue ~60): #16130f #211d18 #2d2822 #3a342d #a0958a #d3cabf #f5f0ea.
+          One accent, teal #4fd1bc (focus ring + primary action). Tiles vary only by neutral lightness, never by hue.
+          Type ratio 1.25, root 16px to 24px. Radius 10/16/24px scaled by element size.
+  Borrowed patterns: launcher-style tile grid with focus lift (Android TV / Apple TV home); filter chips instead of
+          rows (YouTube TV); on-screen alphabet keyboard for remote typing (most TV apps); a zapping strip of neighbouring
+          channels at the bottom of the player.
+  Different: one flat grid filtered by chips instead of many scrolling rows (no horizontal scrolling at all);
+          the "info line" above the grid names the focused channel at display size, so tiles can stay big
+          monograms; "continue watching" is the first, double-width tile rather than a hero.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+
+  --font-display: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-text: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display: 3.052rem;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-label: 0.06em;
+  --leading-display: 1.05;
+  --leading-ui: 1.3;
+  --leading-body: 1.55;
+  --measure-narrow: 48ch;
+
+  /* Warm neutrals, hue ~60 */
+  --n-0: #16130f;   /* page */
+  --n-1: #211d18;   /* tile A, chips */
+  --n-2: #2d2822;   /* tile B */
+  --n-3: #3a342d;   /* tile C, focused surfaces */
+  --n-4: #a0958a;   /* muted: 6.3:1 on n-0, 5.0:1 on n-2 */
+  --n-5: #d3cabf;   /* secondary: 9.0:1 on n-2 */
+  --n-6: #f5f0ea;   /* ink: 10.9:1 on n-3 */
+  --video: #0c0a08;
+
+  /* Accent: teal */
+  --accent: #4fd1bc;        /* 9.9:1 on n-0 */
+  --accent-hover: #6fdcca;
+  --accent-active: #34b8a3;
+  --accent-subtle: #13302b;
+  --accent-subtle-hover: #18403a;
+  --accent-on: #08201c;     /* 9.1:1 on accent */
+
+  --success-fg: #8fd99a; --success-bg: #14231a; --success-border: #2c5536;
+  --warning-fg: #f2cf7e; --warning-bg: #2a2212; --warning-border: #5d4b22;
+  --danger-fg: #ff9f8c;  --danger-bg: #2c1713;  --danger-border: #6b3025;
+  --info-fg: #9cc8f5;    --info-bg: #15202b;    --info-border: #2d4a66;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
+
+  --radius-sm: 10px;  /* chips, keys, buttons */
+  --radius-md: 16px;  /* tiles */
+  --radius-lg: 24px;  /* panels */
+  --border-hairline: 1px solid var(--n-3);
+
+  /* The one soft shadow: things that float over video (zapping strip). */
+  --elevation-overlay: 0 20px 60px rgb(0 0 0 / 0.5);
+
+  --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+  --dur-large: 320ms;
+
+  --focus-ring: 4px solid var(--accent);
+  --focus-offset: 4px;
+  --focus-scale: 1.08;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: clamp(16px, 0.75vw + 10px, 24px); }
+body { margin: 0; background: var(--n-0); color: var(--n-6); font-family: var(--font-text); line-height: var(--leading-body); }
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ---- Header: brand + chips ---------------------------------------- */
+.head { display: flex; align-items: center; gap: var(--space-5); padding: var(--safe-y) var(--safe-x) var(--space-4); }
+.brand { margin: 0; font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-heading); }
+.chips { display: flex; gap: var(--space-2); margin: 0; padding: var(--space-2); overflow-x: auto; list-style: none; scrollbar-width: none; }
+.chip {
+  min-height: 48px; padding: 0 var(--space-5);
+  border: 0; border-radius: 999px; background: var(--n-1);
+  color: var(--n-5); font-size: var(--text-base); white-space: nowrap;
+  cursor: pointer; transition: background var(--dur-micro) var(--ease-entry);
+}
+.chip:hover { background: var(--n-2); }
+.chip[aria-pressed="true"] { background: var(--n-6); color: var(--n-0); font-weight: 700; }
+.chip:focus { outline: var(--focus-ring); outline-offset: 2px; }
+.head__end { margin-left: auto; }
+
+/* ---- Info line: names whatever is focused -------------------------- */
+.info { min-height: 6.2rem; padding: var(--space-3) var(--safe-x) var(--space-4); }
+.info__name { margin: 0; font-size: var(--text-display); font-weight: 700; letter-spacing: var(--tracking-display); line-height: var(--leading-display); }
+.info__meta { margin: var(--space-2) 0 0; color: var(--n-5); font-size: var(--text-base); }
+.info__meta b { color: var(--warning-fg); font-weight: 700; }
+
+/* ---- Tile grid ----------------------------------------------------- */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: var(--space-5);
+  margin: 0; padding: var(--space-3) var(--safe-x) var(--space-9);
+  list-style: none;
+}
+.tile {
+  position: relative; display: grid; place-items: center;
+  width: 100%; aspect-ratio: 4 / 3; padding: var(--space-3);
+  border: 0; border-radius: var(--radius-md); background: var(--n-1);
+  cursor: pointer;
+  transition: transform var(--dur-standard) var(--ease-entry), background var(--dur-micro) var(--ease-entry);
+}
+.tile[data-shade="1"] { background: var(--n-2); }
+.tile[data-shade="2"] { background: var(--n-3); }
+.tile__mono { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.01em; color: var(--n-6); }
+.tile__name {
+  position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-2);
+  overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-align: left; text-overflow: ellipsis; white-space: nowrap;
+}
+.tile__fav { position: absolute; top: var(--space-2); right: var(--space-3); color: var(--n-5); font-size: var(--text-sm); }
+.tile:hover { background: var(--n-3); }
+.tile:focus { outline: var(--focus-ring); outline-offset: var(--focus-offset); transform: scale(var(--focus-scale)); z-index: 1; }
+.tile:focus .tile__name { color: var(--n-6); }
+/* Continue watching: double width, left-aligned text instead of a monogram. */
+.tile--wide { grid-column: span 2; height: 100%; aspect-ratio: auto; place-items: end start; padding: var(--space-5); background: var(--accent-subtle); }
+.tile--wide:hover { background: var(--accent-subtle-hover); }
+.tile__kicker { display: block; color: var(--accent); font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.tile__big { display: block; font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); text-align: left; }
+.tile--wide:focus { transform: scale(1.04); }
+
+/* ---- Search with on-screen keyboard -------------------------------- */
+.search { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-7); padding: var(--space-3) var(--safe-x) var(--space-9); }
+.query { min-height: 3.6rem; margin: 0 0 var(--space-4); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); background: var(--n-1); font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); }
+.query:empty::before { content: "Buscá un canal"; color: var(--n-4); font-weight: 400; }
+.query::after { content: ""; display: inline-block; width: 3px; height: 1em; margin-left: 2px; vertical-align: -0.12em; background: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.keys { display: grid; grid-template-columns: repeat(6, 3rem); gap: var(--space-2); }
+.key {
+  min-height: 3rem; border: 0; border-radius: var(--radius-sm); background: var(--n-1);
+  font-size: var(--text-lg); font-weight: 700; cursor: pointer;
+}
+.key--wide { grid-column: span 2; font-size: var(--text-base); }
+.key--space { grid-column: span 3; }
+.key:hover { background: var(--n-2); }
+.key:focus { outline: var(--focus-ring); outline-offset: 2px; background: var(--n-3); }
+.search .grid { padding: 0; }
+.results__label { margin: 0 0 var(--space-4); color: var(--n-5); }
+mark { background: none; color: inherit; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
+
+/* ---- Messages ------------------------------------------------------ */
+.panel { max-width: 40rem; margin: var(--space-5) var(--safe-x); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--n-1); }
+.panel h2 { margin: 0 0 var(--space-2); font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); }
+.panel p { max-width: var(--measure-narrow); margin: 0 0 var(--space-5); color: var(--n-5); }
+.panel--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); }
+.panel--error h2 { color: var(--danger-fg); }
+.button { min-height: 48px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-sm); background: var(--n-2); font-weight: 700; cursor: pointer; }
+.button + .button { margin-left: var(--space-2); }
+.button:hover { background: var(--n-3); }
+.button--primary { background: var(--accent); color: var(--accent-on); }
+.button--primary:hover { background: var(--accent-hover); }
+.button:focus { outline: var(--focus-ring); outline-offset: 3px; }
+.field { display: block; width: 100%; min-height: 52px; margin: 0 0 var(--space-4); padding: 0 var(--space-4); border: var(--border-hairline); border-radius: var(--radius-sm); background: var(--n-0); font-size: var(--text-sm); }
+.field:focus { outline: var(--focus-ring); outline-offset: 2px; }
+.skel { aspect-ratio: 4 / 3; border-radius: var(--radius-md); background: var(--n-1); animation: pulse 1.6s var(--ease-entry) infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+/* ---- Player -------------------------------------------------------- */
+.player { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: var(--video); }
+.player__picture { color: var(--n-2); font-size: 9rem; font-weight: 700; }
+.player__caption { position: absolute; top: 50%; margin-top: 5rem; color: var(--n-4); font-size: var(--text-sm); }
+.player__title { position: absolute; top: var(--safe-y); left: var(--safe-x); margin: 0; padding: var(--space-2) var(--space-5); border-radius: 999px; background: rgb(22 19 15 / 0.85); font-size: var(--text-lg); font-weight: 700; }
+.player__title span { margin-left: var(--space-3); color: var(--n-5); font-weight: 400; }
+.player__notice { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: var(--safe-x); max-width: 34rem; margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-fg); }
+.strip {
+  position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y);
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg); background: rgb(33 29 24 / 0.94);
+  box-shadow: var(--elevation-overlay);
+  transition: transform var(--dur-large) var(--ease-entry), opacity var(--dur-standard) var(--ease-entry);
+}
+.strip[data-collapsed] { transform: translateY(30%); opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
+.strip__list { display: flex; gap: var(--space-3); margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; }
+.mini { flex: 1; min-width: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--n-2); }
+.mini b { display: block; font-size: var(--text-lg); }
+.mini span { display: block; overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.mini[aria-current="true"] { background: var(--n-6); color: var(--n-0); }
+.mini[aria-current="true"] span { color: var(--n-1); }
+.strip__hint { margin: 0; color: var(--n-5); font-size: var(--text-sm); white-space: nowrap; }
+
+/* ---- Mockup chrome (not part of the design) ----------------------- */
+.mock { position: fixed; right: 12px; bottom: 12px; z-index: 50; max-width: 30rem; padding: 8px 12px; border: 1px dashed #6d645a; border-radius: 6px; background: #16130fee; color: #d3cabf; font: 13px/1.45 system-ui, sans-serif; }
+.mock summary { cursor: pointer; color: #f5f0ea; }
+.mock p { margin: 6px 0; }
+.mock button { margin: 2px; padding: 4px 8px; border: 1px solid #6d645a; border-radius: 4px; background: #211d18; cursor: pointer; font-size: 12px; }
+
+@media (max-width: 720px) {
+  .head > * { min-width: 0; }
+  .mock { left: 12px; max-width: none; }
+  .head { flex-wrap: wrap; }
+  .chips { order: 3; width: 100%; }
+  .info__name { font-size: var(--text-2xl); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .search { grid-template-columns: 1fr; }
+  .keys { display: none; }            /* phones have a real keyboard */
+  .query { display: none; }
+  .search__native { display: block !important; }
+  .strip { flex-wrap: wrap; }
+  .mini:nth-child(1), .mini:nth-child(5) { display: none; }
+  .player__picture { font-size: 4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .tile:focus, .tile--wide:focus { transform: none; }
+  .strip[data-collapsed] { transform: none; }
+  .query::after { animation: none; }
+}
+</style>
+</head>
+<body>
+<header class="head">
+  <h1 class="brand">IPTV</h1>
+  <ul class="chips" aria-label="Filtros">
+    <li><button class="chip" data-nav data-filter="search">Buscar</button></li>
+    <li><button class="chip" data-nav data-filter="all" aria-pressed="true">Todos</button></li>
+    <li><button class="chip" data-nav data-filter="favorites">Favoritos</button></li>
+    <li><button class="chip" data-nav data-filter="General">General</button></li>
+    <li><button class="chip" data-nav data-filter="Noticias">Noticias</button></li>
+    <li><button class="chip" data-nav data-filter="Cultura">Cultura</button></li>
+    <li><button class="chip" data-nav data-filter="Infantiles">Infantiles</button></li>
+    <li><button class="chip" data-nav data-filter="Deportes">Deportes</button></li>
+    <li><button class="chip" data-nav data-filter="Cine">Cine</button></li>
+  </ul>
+  <button class="chip head__end" data-nav data-filter="settings">Lista</button>
+</header>
+
+<main>
+  <section data-view="grid">
+    <div class="info" aria-live="polite">
+      <h2 class="info__name" data-info-name>Telefe</h2>
+      <p class="info__meta" data-info-meta>1080p · General</p>
+    </div>
+    <ul class="grid" data-grid></ul>
+  </section>
+
+  <section class="search" data-view="search" hidden>
+    <div>
+      <p class="query" data-query aria-live="polite">TE</p>
+      <input class="field search__native" type="search" data-nav aria-label="Nombre del canal" hidden>
+      <div class="keys" role="group" aria-label="Teclado en pantalla" data-keys></div>
+    </div>
+    <div>
+      <p class="results__label" data-results-label></p>
+      <ul class="grid" data-results></ul>
+    </div>
+  </section>
+
+  <section data-view="message" hidden><div data-message></div></section>
+</main>
+
+<div class="player" data-player role="dialog" aria-modal="true" aria-labelledby="p-title" hidden>
+  <div class="player__picture" data-v-mono aria-hidden="true">TE</div>
+  <p class="player__caption">Imagen simulada</p>
+  <p class="player__title" id="p-title"><span data-p-no style="margin:0 var(--space-3) 0 0">7</span><b data-p-name>Telefe</b><span data-p-meta>1080p</span></p>
+  <p class="player__notice" data-p-notice role="status" hidden></p>
+  <div class="strip" data-strip>
+    <ul class="strip__list" data-strip-list aria-label="Canales cercanos"></ul>
+    <button class="button" data-nav data-fav>Agregar a favoritos</button>
+    <button class="button" data-nav data-close>Volver</button>
+  </div>
+</div>
+
+<details class="mock">
+  <summary>Opción C: Mosaico del Living · Soft Tactile, oscuro cálido · controles de la maqueta</summary>
+  <p>Toma los mosaicos de los launchers con foco que agranda, los filtros en chips, el teclado en pantalla y una tira de zapping. Lo distinto: una sola grilla filtrada por chips, sin desplazamiento horizontal y el nombre del canal con foco en grande arriba de la grilla.</p>
+  <p>Las flechas mueven el foco · Enter reproduce o escribe · Esc o Retroceso vuelve. En el reproductor ▲ ▼ cambian de canal. Las teclas 1–8 cambian de estado (salvo mientras escribís).</p>
+  <div>
+    <button data-state="home">1 Inicio</button><button data-state="search">2 Buscar</button>
+    <button data-state="favorites">3 Favoritos</button><button data-state="player">4 Reproductor</button>
+    <button data-state="empty">5 Sin favoritos</button><button data-state="loading">6 Cargando</button>
+    <button data-state="error">7 Error</button><button data-state="settings">8 Lista</button>
+  </div>
+  <p><a href="./" style="color:#f5f0ea">Todas las opciones</a></p>
+</details>
+
+<script>
+// Mockup only: sample data, focus movement, state switching.
+const CHANNELS = [
+  ['Televisión Pública', '1080p', 'General', []],
+  ['Encuentro', '720p', 'Cultura', []],
+  ['Pakapaka', '720p', 'Infantiles', []],
+  ['DeporTV', '720p', 'Deportes', ['part-time']],
+  ['Cine.AR', '1080p', 'Cine', []],
+  ['El Trece', '1080p', 'General', ['region-locked']],
+  ['Telefe', '1080p', 'General', []],
+  ['América', '720p', 'General', []],
+  ['Net TV', 'SD', 'General', []],
+  ['Telemax', 'SD', 'General', ['region-locked']],
+  ['TN Todo Noticias', '1080p', 'Noticias', ['youtube']],
+  ['C5N', '720p', 'Noticias', ['youtube']],
+  ['LN+', '720p', 'Noticias', []],
+  ['Canal 26', '720p', 'Noticias', []],
+  ['Crónica TV', 'SD', 'Noticias', ['part-time']],
+].map(([name, quality, group, tags], i) => ({ no: i + 1, name, quality, group, tags, mono: monogram(name) }));
+// Display labels for tag identifiers; the identifiers themselves stay in English.
+const TAG_LABELS = { youtube: 'YouTube', 'region-locked': 'Solo Argentina', 'part-time': 'Horario parcial' };
+const tagText = (c) => [c.quality, ...c.tags.map((t) => TAG_LABELS[t])].join(' · ');
+// Categories ordered like groupChannels(): biggest first.
+const GROUPS = [...new Set(CHANNELS.map((c) => c.group))]
+  .sort((a, b) => CHANNELS.filter((c) => c.group === b).length - CHANNELS.filter((c) => c.group === a).length);
+let FAVORITES = [7, 11, 4, 3];
+const LAST_WATCHED = 7;
+
+function monogram(name) {
+  const compact = name.replace(/\s/g, '');
+  if (compact.length <= 4) return compact.toUpperCase();
+  const words = name.split(/[^\p{L}\p{N}+]+/u).filter(Boolean);
+  if (words.length === 1) {
+    const caps = words[0].match(/[\p{Lu}\p{N}]/gu) || [];
+    return (caps.length >= 2 ? caps.join('').slice(0, 3) : words[0].slice(0, 2)).toUpperCase();
+  }
+  if (/^[\p{Lu}\p{N}]{2,3}$/u.test(words[0])) return words[0];
+  return words.slice(0, 2).map((w) => (/^\p{N}+$/u.test(w) ? w : w[0])).join('').toUpperCase();
+}
+// Stable shade from the name: tiles differ by lightness only, so the accent stays the only hue.
+const shade = (name) => [...name].reduce((h, ch) => (h * 31 + ch.codePointAt(0)) >>> 0, 7) % 3;
+const byNo = (no) => CHANNELS.find((c) => c.no === no);
+const esc = (s) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const $ = (s, r = document) => r.querySelector(s);
+const metaOf = (c) => {
+  const notes = c.tags.filter((t) => t === 'region-locked' || t === 'part-time');
+  const plain = [c.quality, c.group, c.tags.includes('youtube') ? 'YouTube' : null].filter(Boolean).join(' · ');
+  return plain + (notes.length ? ' · <b>' + notes.map((t) => TAG_LABELS[t]).join(', ') + '</b>' : '');
+};
+
+function tile(c, nameHtml = esc(c.name)) {
+  const fav = FAVORITES.includes(c.no) ? '<span class="tile__fav">Favorito</span>' : '';
+  return `<li><button class="tile" data-nav data-play="${c.no}" data-shade="${shade(c.name)}" aria-label="${esc(c.name)}">
+    ${fav}<span class="tile__mono" aria-hidden="true">${esc(c.mono)}</span><span class="tile__name" aria-hidden="true">${nameHtml}</span></button></li>`;
+}
+function continueTile(c) {
+  return `<li class="tile-wide-slot" style="grid-column: span 2"><button class="tile tile--wide" data-nav data-play="${c.no}">
+    <span><span class="tile__kicker">Seguir viendo</span><span class="tile__big">${esc(c.name)}</span></span></button></li>`;
+}
+
+// ---- Views -------------------------------------------------------------
+let filter = 'all';
+function setView(name) { document.querySelectorAll('[data-view]').forEach((v) => { v.hidden = v.dataset.view !== name; }); }
+function pressChip(f) { document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.filter === f))); }
+function renderGrid(f) {
+  filter = f; pressChip(f); setView('grid');
+  let list = CHANNELS;
+  if (f === 'favorites') list = FAVORITES.map(byNo);
+  else if (f !== 'all') list = CHANNELS.filter((c) => c.group === f);
+  $('[data-grid]').innerHTML = (f === 'all' ? continueTile(byNo(LAST_WATCHED)) : '') + list.map((c) => tile(c)).join('');
+}
+function message(html) { setView('message'); $('[data-message]').innerHTML = html; }
+
+const KEYS = [...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789'];
+$('[data-keys]').innerHTML = KEYS.map((k) => `<button class="key" data-nav data-key="${k}">${k}</button>`).join('')
+  + '<button class="key key--wide key--space" data-nav data-key=" ">Espacio</button><button class="key key--wide" data-nav data-key="del">Borrar</button>';
+let query = 'TE';
+function runSearch() {
+  $('[data-query]').textContent = query;
+  const q = query.trim().toLowerCase();
+  const fold = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const hits = q ? CHANNELS.filter((c) => fold(c.name).includes(fold(q))) : [];
+  $('[data-results-label]').textContent = q ? (hits.length ? `${hits.length} de ${CHANNELS.length} canales coinciden. Presioná ▶ para llegar a ellos.` : `Ningún canal coincide con “${query.trim()}”. Revisá cómo lo escribiste o probá con otra parte del nombre.`) : 'Empezá a escribir; los resultados aparecen acá.';
+  $('[data-results]').innerHTML = hits.map((c) => {
+    const i = fold(c.name).indexOf(fold(q));
+    return tile(c, esc(c.name.slice(0, i)) + '<mark>' + esc(c.name.slice(i, i + q.length)) + '</mark>' + esc(c.name.slice(i + q.length)));
+  }).join('');
+}
+
+let screen = 'home';
+function show(name) {
+  if (name === 'player') return openPlayer(current);
+  closePlayer(false);
+  screen = name;
+  if (name === 'home') { renderGrid('all'); return focus($('[data-grid] [data-play]:not(.tile--wide)')); }
+  if (name === 'favorites') { renderGrid('favorites'); return focus($('[data-grid] [data-nav]')); }
+  if (name === 'search') { pressChip('search'); setView('search'); runSearch(); return focus($('[data-key="L"]')); }
+  if (name === 'empty') {
+    pressChip('favorites');
+    message(`<div class="panel"><h2>Todavía no tenés favoritos</h2><p>Los favoritos reúnen en un solo lugar los canales que más mirás. Mientras se reproduce un canal, elegí <strong>Agregar a favoritos</strong> en la tira de abajo.</p>
+      <button class="button button--primary" data-nav data-filter="all">Ver todos los canales</button></div>`);
+  }
+  if (name === 'loading') {
+    pressChip('all'); setView('grid');
+    $('[data-info-name]').textContent = 'Cargando canales…'; $('[data-info-meta]').textContent = 'playlist_argentina.m3u8';
+    $('[data-grid]').innerHTML = '<li class="skel" aria-hidden="true"></li>'.repeat(12);
+    return;
+  }
+  if (name === 'error') {
+    message(`<div class="panel panel--error" role="alert"><h2>No se pudo cargar la lista</h2><p>raw.githubusercontent.com no respondió en 15 segundos. Revisá la dirección o tu conexión y volvé a intentar. La última lista que funcionó sigue guardada.</p>
+      <button class="button button--primary" data-nav>Reintentar</button><button class="button" data-nav data-filter="settings">Cambiar lista</button></div>`);
+  }
+  if (name === 'settings') {
+    pressChip('settings');
+    message(`<div class="panel"><h2>Lista de canales</h2><p>playlist_argentina.m3u8 · 15 canales · cargada hoy a las 20:58.</p>
+      <input class="field" type="url" data-nav aria-label="URL de la lista" value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_argentina.m3u8">
+      <button class="button button--primary" data-nav>Cargar lista</button><button class="button" data-nav>Abrir archivo</button></div>`);
+  }
+  focus($('[data-view="message"] [data-nav]'));
+}
+
+document.addEventListener('focusin', (e) => {
+  const t = e.target.closest('[data-play]');
+  if (!t) return;
+  const c = byNo(+t.dataset.play);
+  $('[data-info-name]').textContent = t.classList.contains('tile--wide') ? `Seguir viendo: ${c.name}` : c.name;
+  $('[data-info-meta]').innerHTML = metaOf(c);
+});
+
+// ---- Player ------------------------------------------------------------
+const player = $('[data-player]');
+let current = 7;
+let returnFocus = null;
+let stripTimer;
+function peekStrip() {
+  $('[data-strip]').removeAttribute('data-collapsed');
+  clearTimeout(stripTimer);
+  stripTimer = setTimeout(() => $('[data-strip]').setAttribute('data-collapsed', ''), 5000);
+}
+function openPlayer(no) {
+  returnFocus = document.activeElement?.matches('[data-nav]') ? document.activeElement : null;
+  current = no; player.hidden = false; renderPlayer(); peekStrip(); focus($('[data-fav]'));
+}
+function closePlayer(restore = true) {
+  if (player.hidden) return;
+  player.hidden = true;
+  if (restore && returnFocus) focus(returnFocus);
+}
+function renderPlayer() {
+  const c = byNo(current);
+  const i = CHANNELS.indexOf(c);
+  $('[data-p-no]').textContent = c.no;
+  $('[data-p-name]').textContent = c.name;
+  $('[data-p-meta]').textContent = c.quality;
+  $('[data-v-mono]').textContent = c.mono;
+  $('[data-strip-list]').innerHTML = [-2, -1, 0, 1, 2].map((d) => CHANNELS[(i + d + CHANNELS.length) % CHANNELS.length])
+    .map((x) => `<li class="mini" aria-current="${x === c}"><b>${esc(x.mono)}</b><span>${esc(x.name)}</span></li>`).join('');
+  $('[data-fav]').textContent = FAVORITES.includes(c.no) ? 'Quitar de favoritos' : 'Agregar a favoritos';
+  const n = $('[data-p-notice]');
+  n.hidden = !c.tags.some((t) => t === 'region-locked' || t === 'part-time');
+  n.textContent = c.tags.includes('region-locked') ? 'Solo Argentina: esta señal se puede ver únicamente desde Argentina. Presioná ▼ para pasar al canal siguiente.' : 'Horario parcial: puede que este canal no esté transmitiendo ahora. Presioná ▼ para pasar al canal siguiente.';
+}
+
+// ---- Focus movement (same algorithm as src/ui/spatial-nav.js) ---------
+function focus(el) { if (!el) return; el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+function nearest(from, dir, scope) {
+  const a = from.getBoundingClientRect(); let best = null; let bestScore = Infinity;
+  for (const el of scope.querySelectorAll('[data-nav]')) {
+    if (el === from || !el.getClientRects().length) continue;
+    const b = el.getBoundingClientRect();
+    const ac = { x: a.left + a.width / 2, y: a.top + a.height / 2 }, bc = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    const [p, s] = { right: [b.left - a.right + 1, Math.abs(bc.y - ac.y)], left: [a.left - b.right + 1, Math.abs(bc.y - ac.y)],
+      down: [b.top - a.bottom + 1, Math.abs(bc.x - ac.x)], up: [a.top - b.bottom + 1, Math.abs(bc.x - ac.x)] }[dir];
+    if (p <= 0) continue;
+    const score = p + s * 3;
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  return best;
+}
+const DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+document.addEventListener('keydown', (e) => {
+  const inField = e.target instanceof HTMLInputElement;
+  const typing = screen === 'search' && player.hidden;
+  if (!inField && !typing && /^[1-8]$/.test(e.key)) return show(['home', 'search', 'favorites', 'player', 'empty', 'loading', 'error', 'settings'][+e.key - 1]);
+  if (typing && !inField && /^[\p{L}\p{N}]$/u.test(e.key) && !e.ctrlKey && !e.metaKey) { query += e.key.toUpperCase(); return runSearch(); }
+  if (typing && !inField && e.key === 'Backspace' && query) { e.preventDefault(); query = query.slice(0, -1); return runSearch(); }
+  if (e.key === 'Escape' || (e.key === 'Backspace' && !inField)) {
+    e.preventDefault();
+    if (!player.hidden) return closePlayer();
+    if (screen !== 'home') return show('home');
+    return;
+  }
+  // While the strip is hidden, the first non-arrow key only brings it back, so nothing invisible gets activated.
+  if (!player.hidden && $('[data-strip]').hasAttribute('data-collapsed') && !DIRS[e.key]) { e.preventDefault(); return peekStrip(); }
+  const dir = DIRS[e.key];
+  if (!dir) return;
+  if (!player.hidden && (dir === 'up' || dir === 'down')) {
+    e.preventDefault();
+    const i = CHANNELS.indexOf(byNo(current));
+    current = CHANNELS[(i + (dir === 'up' ? -1 : 1) + CHANNELS.length) % CHANNELS.length].no;
+    renderPlayer(); return peekStrip();
+  }
+  if (!player.hidden) peekStrip();
+  if (inField && (dir === 'left' || dir === 'right')) return;
+  const scope = player.hidden ? document : player;
+  const from = document.activeElement?.matches?.('[data-nav]') ? document.activeElement : null;
+  const next = from ? nearest(from, dir, scope) : scope.querySelector('[data-nav]');
+  if (next) { e.preventDefault(); focus(next); }
+});
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-play],[data-filter],[data-key],[data-close],[data-state],[data-fav]');
+  if (!t) return;
+  if (t.hasAttribute('data-fav')) {
+    FAVORITES = FAVORITES.includes(current) ? FAVORITES.filter((n) => n !== current) : [...FAVORITES, current];
+    return renderPlayer();
+  }
+  if (t.dataset.key) {
+    const k = t.dataset.key;
+    query = k === 'del' ? query.slice(0, -1) : k === 'clear' ? '' : query + k;
+    return runSearch();
+  }
+  if (t.dataset.play) return openPlayer(+t.dataset.play);
+  if (t.hasAttribute('data-close')) return closePlayer();
+  if (t.dataset.state) return show(t.dataset.state);
+  const f = t.dataset.filter;
+  if (f === 'search' || f === 'settings') return show(f);
+  if (f === 'favorites') return show('favorites');
+  if (f === 'all') return show('home');
+  screen = 'filter'; renderGrid(f); focus($('[data-grid] [data-nav]'));
+});
+$('.search__native').addEventListener('input', (e) => { query = e.target.value.toUpperCase(); runSearch(); });
+// Deep links: option-x.html#player, #search, #error… open that state directly.
+const initial = location.hash.slice(1);
+show(['home', 'search', 'favorites', 'player', 'empty', 'loading', 'error', 'settings'].includes(initial) ? initial : 'home');
+</script>
+</body>
+</html>
