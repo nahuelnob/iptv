@@ -30,7 +30,7 @@ export function createPlayer(root, {
   numberOf = () => '',
 } = {}) {
   const video = root.querySelector('video');
-  const embed = root.querySelector('[data-player-embed]');
+  let embed = root.querySelector('[data-player-embed]');
   const number = root.querySelector('[data-player-no]');
   const title = root.querySelector('[data-player-name]');
   const meta = root.querySelector('[data-player-meta]');
@@ -51,6 +51,7 @@ export function createPlayer(root, {
   let closing = false;
   let closeFallback = null;
   let fullscreenOwned = false;
+  let focusAfterClose = null; // where focus landed after the last close (a tile), to restore it
   let reenterFullscreen = false; // reopened while the previous exit was still in progress
 
   closeButton.addEventListener('click', close);
@@ -95,6 +96,7 @@ export function createPlayer(root, {
     document.addEventListener(type, () => {
       if (fullscreenElement() === root) {
         fullscreenOwned = true;
+        refocusIfLost(closeButton);
       } else if (reenterFullscreen) {
         // The exit belongs to the previous channel; the reopened player asks again now that it finished.
         reenterFullscreen = false;
@@ -102,8 +104,22 @@ export function createPlayer(root, {
       } else if (fullscreenOwned) {
         fullscreenOwned = false;
         if (!root.hidden) close();
+      } else if (root.hidden) {
+        refocusIfLost(focusAfterClose);
       }
     });
+  }
+
+  // Android WebView drops focus to <body> when it enters or leaves fullscreen, after our own focus()
+  // calls have run. With no focused element the remote's arrows go nowhere, so put focus back.
+  // The view swap can finish after fullscreenchange, so check again a little later.
+  function refocusIfLost(element) {
+    for (const delay of [50, 400]) {
+      setTimeout(() => {
+        const lost = !document.activeElement || document.activeElement === document.body;
+        if (lost && element?.isConnected) focusElement(element);
+      }, delay);
+    }
   }
 
   video.addEventListener('playing', () => setStatus(null));
@@ -181,8 +197,7 @@ export function createPlayer(root, {
       return fail('Este canal de YouTube figura por nombre y no se conoce su ID: hay que agregarlo en src/data/youtube-channels.js.');
     }
     video.hidden = true;
-    embed.hidden = false;
-    embed.src = src;
+    replaceEmbed(src);
     // The embed reports nothing back without the IFrame API, so explain the likely causes up front.
     setStatus('Si YouTube muestra un error, el canal no está transmitiendo ahora o no permite verse fuera de YouTube.');
     setTimeout(() => { if (embed.src === src) setStatus(null); }, 6000);
@@ -261,7 +276,10 @@ export function createPlayer(root, {
     reenterFullscreen = false;
     exitFullscreen();
     if (returnFocusTo?.isConnected) focusElement(returnFocusTo);
-    onClose(opened);
+    // Remember the intended tile, not document.activeElement: while the WebView is still leaving
+    // fullscreen it can ignore focus(), and activeElement would already be <body>.
+    const intended = onClose(opened);
+    focusAfterClose = intended ?? (returnFocusTo?.isConnected ? returnFocusTo : null);
   }
 
   function teardown() {
@@ -271,8 +289,19 @@ export function createPlayer(root, {
     video.removeAttribute('src');
     video.load();
     video.hidden = false;
-    embed.hidden = true;
-    embed.removeAttribute('src');
+    replaceEmbed(null);
+  }
+
+  // Changing src on an iframe that already loaded adds a joint session history entry, so the remote's
+  // Back (a history step on Android TV) would move the iframe back instead of closing the player.
+  // A freshly inserted iframe's first load adds none, and removing it drops the entries it made.
+  function replaceEmbed(src) {
+    const next = embed.cloneNode(false);
+    next.removeAttribute('src');
+    if (src) next.src = src;
+    next.hidden = !src;
+    embed.replaceWith(next);
+    embed = next;
   }
 
   function fail(cause) {

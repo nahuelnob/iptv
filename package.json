@@ -6,9 +6,19 @@
   "description": "Web IPTV player for M3U playlists, built for keyboard and TV remote navigation.",
   "scripts": {
     "start": "node scripts/serve.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "build:www": "node scripts/build-www.mjs",
+    "android:sync": "npm run build:www && cap sync android"
   },
   "engines": {
     "node": ">=20.11"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
   }
 }

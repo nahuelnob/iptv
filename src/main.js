@@ -11,6 +11,7 @@ import { createPlayer } from './ui/player.js';
 import { createBackGuard } from './ui/back-stack.js';
 import { isBack } from './ui/keys.js';
 import { enableSpatialNav, focusElement, isVisible } from './ui/spatial-nav.js';
+import { connectNativeBack } from './infra/native-back.js';
 
 const $ = (selector) => document.querySelector(selector);
 const views = {
@@ -67,6 +68,7 @@ const guard = createBackGuard({
 
 nav.onClose = focusContent;
 enableSpatialNav({ onEdge });
+connectNativeBack();
 
 // ---- Rendering --------------------------------------------------------
 
@@ -388,7 +390,9 @@ function onWatch(channel) {
 
 // Back from the player lands on the tile it was opened from (PLAN section 2), re-rendered if
 // favorites or "Seguir viendo" changed meanwhile.
+// Returns the tile focus should end on, so the player can restore it if the platform drops focus later.
 function afterPlayer(opened) {
+  let intended = null;
   if (staleBehindPlayer) {
     staleBehindPlayer = false;
     const fromContinue = document.activeElement?.hasAttribute('data-continue');
@@ -400,8 +404,10 @@ function afterPlayer(opened) {
       : tiles.find((tile) => !tile.hasAttribute('data-continue') && state.channels[Number(tile.dataset.index)]?.url === opened.url);
     if (target) focusElement(target);
     else focusDefault();
+    intended = target ?? null;
   }
   guard.sync();
+  return intended;
 }
 
 // ---- Events -----------------------------------------------------------
