@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nodo</title>
+  <!-- TV sizing only on a TV: the APK (Capacitor) or a TV browser. Runs before the CSS applies so the
+       layout never paints at the wrong size first. -->
+  <script>
+    if (window.Capacitor?.isNativePlatform?.()
+      || /Android TV|GoogleTV|AFT|BRAVIA|SmartTV|SMART-TV|Tizen|Web0S|webOS|HbbTV/i.test(navigator.userAgent)) {
+      document.documentElement.classList.add('tv');
+    }
+  </script>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

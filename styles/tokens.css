@@ -73,9 +73,9 @@
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
   --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
-  /* TV overscan safe area. */
-  --safe-x: clamp(16px, 5vw, 96px);
-  --safe-y: clamp(12px, 4.5vh, 54px);
+  /* Screen margins. Browsers: modest. TV (:root.tv below): the overscan safe area. */
+  --safe-x: clamp(16px, 2.5vw, 40px);
+  --safe-y: clamp(12px, 2.5vh, 28px);
 
   /* The mark's 18% corner scaled to UI sizes. */
   --radius-sm: 6px;   /* chips, keys, buttons */
@@ -99,8 +99,16 @@
 
   /* Side rail. Equal padding on both sides keeps the icons centred; the full --safe-x read as
      an empty gap inside a rail with its own background, and Android TV does not overscan the left edge. */
-  --rail-pad: clamp(12px, 1.5vw, 32px);
+  --rail-pad: 12px;
   --rail-w: calc(2 * var(--rail-pad) + 3.2rem);
+}
+
+/* TV only (html.tv, set in index.html): margins and the rail grow with the viewport for overscan
+   and couch distance. On a desktop monitor the same rules made the chrome needlessly wide. */
+:root.tv {
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
+  --rail-pad: clamp(12px, 1.5vw, 32px);
 }
 
 @media (prefers-reduced-motion: reduce) {

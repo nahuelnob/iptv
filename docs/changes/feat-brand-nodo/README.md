@@ -39,3 +39,11 @@ Afuera:
 ### 2026-11-04 — feat(brand)
 
 - Marca Nodo aplicada a la web y al proyecto Android; archivos de marca en `design/brand/`.
+
+### 2026-11-04 — fix(ui)
+
+- El dueño vio todo muy grande, en el monitor y en la tele ("todos los iconos, las navbar lateral,
+  los textos, los veo todos muy grandes"; "ojo, en tele tambien lo veo grande"). La letra base
+  crecía con el ancho de la ventana hasta 24 px. Ahora el navegador usa 16 px fijos y la escala de
+  tele (unos 14 px en un deco 1080p) se activa solo en el APK o en navegadores de TV. Los márgenes
+  de seguridad, el riel, el menú de categorías y el nombre del canal se ajustaron igual.

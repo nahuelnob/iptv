@@ -2,8 +2,12 @@
    Ported from design/options/option-c-header-2.html; app-only additions are marked "App:". */
 
 *, *::before, *::after { box-sizing: border-box; }
-/* 16px on laptops, 24px on a 1080p TV viewed from the couch. */
-html { font-size: clamp(16px, 0.75vw + 10px, 24px); }
+/* Desktop and phone browsers: the usual 16px, whatever the window width.
+   TV (html.tv, set in index.html): a 1080p Android TV reports a 960px-wide viewport (density 2), so
+   this lands near 14px there, Android TV's body size; a box reporting 1920px gets about 18px. The
+   earlier rule (up to 24px) made everything too big on TVs and desktop monitors alike. */
+html { font-size: 16px; }
+html.tv { font-size: clamp(13px, 0.4vw + 10px, 18px); }
 body { margin: 0; background: var(--n-0); color: var(--n-6); font-family: var(--font-text); line-height: var(--leading-body); }
 button, input { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
@@ -63,7 +67,7 @@ button, input { font: inherit; color: inherit; }
   position: fixed; top: 0; bottom: 0; left: 0; z-index: 20;
   display: flex; flex-direction: column;
   /* App (owner feedback): same left inset as the rail, so the drawer reads as the rail expanding. */
-  width: calc(var(--rail-pad) + 19rem); padding: var(--safe-y) var(--space-4) var(--safe-y) var(--rail-pad);
+  width: calc(var(--rail-pad) + 16rem); padding: var(--safe-y) var(--space-4) var(--safe-y) var(--rail-pad);
   background: var(--n-1); box-shadow: var(--elevation-overlay);
   animation: drawer-in var(--dur-large) var(--ease-entry);
 }
@@ -82,11 +86,14 @@ button, input { font: inherit; color: inherit; }
 .drawer__cats[data-more-start] { --fade-start: 2.5rem; }
 .drawer__cats[data-more-end] { --fade-end: 2.5rem; }
 .drawer__item {
-  position: relative; display: flex; align-items: center; gap: var(--space-4);
-  width: 100%; min-height: 48px; padding: 0 var(--space-3) 0 var(--drawer-inset);
+  position: relative; display: flex; align-items: center; gap: var(--space-3);
+  width: 100%; min-height: 40px; padding: 0 var(--space-3) 0 var(--drawer-inset);
   border: 0; border-radius: var(--radius-sm); background: none;
-  color: var(--n-5); font-size: var(--text-lg); line-height: var(--leading-ui); text-align: left; white-space: nowrap; cursor: pointer;
+  color: var(--n-5); font-size: var(--text-base); line-height: var(--leading-ui); text-align: left; white-space: nowrap; cursor: pointer;
 }
+/* TV: bigger rows and type for the remote and couch distance. */
+.tv .drawer { width: calc(var(--rail-pad) + 19rem); }
+.tv .drawer__item { gap: var(--space-4); min-height: 48px; font-size: var(--text-lg); }
 .drawer__item small { margin-left: auto; color: var(--n-4); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 .drawer__item:hover { background: var(--n-2); }
 /* Active section / category = bar + ink + weight. */
@@ -113,7 +120,7 @@ button, input { font: inherit; color: inherit; }
 /* ---- Info line: names whatever is focused --------------------------- */
 .info { min-height: 6.2rem; padding: var(--space-3) var(--safe-x) var(--space-4); }
 /* App: one line, so moving focus never reflows the grid below. */
-.info__name { margin: 0; overflow: hidden; font-size: var(--text-display); font-weight: var(--weight-display); letter-spacing: var(--tracking-display); line-height: var(--leading-display); text-overflow: ellipsis; white-space: nowrap; }
+.info__name { margin: 0; overflow: hidden; font-size: var(--text-3xl); font-weight: var(--weight-display); letter-spacing: var(--tracking-display); line-height: var(--leading-display); text-overflow: ellipsis; white-space: nowrap; }
 .info__meta { margin: var(--space-2) 0 0; color: var(--n-5); font-size: var(--text-base); }
 .info__meta b { color: var(--warning-fg); font-weight: var(--weight-ui); }
 
