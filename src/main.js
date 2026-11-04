@@ -1,5 +1,7 @@
 // Container: owns the browse state (section, category, loaded list) and wires playlist loading,
 // the mosaic, the section navigation, Back and the player together.
+// First: old TV WebViews need these before any other module runs.
+import './polyfills.js';
 import { parseM3U, groupChannels } from './domain/playlist.js';
 import { toggleFavorite, isFavorite, markWatched, favoriteChannels, lastWatchedChannel } from './domain/library.js';
 import { searchChannels } from './domain/search.js';

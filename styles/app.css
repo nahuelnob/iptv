@@ -7,10 +7,14 @@
    this lands near 14px there, Android TV's body size; a box reporting 1920px gets about 18px. The
    earlier rule (up to 24px) made everything too big on TVs and desktop monitors alike. */
 html { font-size: 16px; }
-html.tv { font-size: clamp(13px, 0.4vw + 10px, 18px); }
+html.tv { font-size: calc(0.4vw + 10px); font-size: clamp(13px, 0.4vw + 10px, 18px); }
 body { margin: 0; background: var(--n-0); color: var(--n-6); font-family: var(--font-text); line-height: var(--leading-body); }
 button, input { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
+/* :focus first, then undone where :focus-visible exists: a browser without :focus-visible (Chrome 66
+   TV WebViews) drops the second rule entirely and keeps the ring, which the remote cannot do without. */
+:focus { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+:focus:not(:focus-visible) { outline: none; }
 :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 
 .icon { width: 1.4rem; height: 1.4rem; flex: none; }
@@ -266,7 +270,7 @@ html[data-native-video] .player__video { display: none; }
   .top { flex-wrap: wrap; padding-left: var(--safe-x); }
   .top__hint { display: none; }
   .crumb { font-size: var(--text-lg); margin-left: 0; }
-  .drawer { width: min(100%, 22rem); }
+  .drawer { width: 22rem; max-width: 100%; width: min(100%, 22rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -275,3 +279,29 @@ html[data-native-video] .player__video { display: none; }
   .player[data-idle] .strip { transform: none; }
   .drawer, .scrim { animation: none; }
 }
+
+/* ---- Old TV WebViews (Chrome 66 on the Claro B866V2 deco) ----
+   Fallbacks for what the build (scripts/build-web.mjs) cannot lower. Modern browsers skip them. */
+
+/* clamp() inside custom properties fails only where the property is used: give plain values. */
+@supports not (width: clamp(1px, 1px, 1px)) {
+  :root { --safe-x: 2.5vw; --safe-y: 2.5vh; }
+  :root.tv { --safe-x: 5vw; --safe-y: 4.5vh; --rail-pad: 1.5vw; }
+}
+
+/* No aspect-ratio: tiles take a 4:3 height from the viewport (four columns on a TV). */
+@supports not (aspect-ratio: 1) {
+  .tile:not(.tile--wide), .skel { height: 14.3vw; }
+}
+
+/* No flex gap (detected in index.html): the same spacing as margins between siblings. */
+.no-flex-gap .rail > * + * { margin-top: var(--space-2); }
+.no-flex-gap .top > * + * { margin-left: var(--space-5); }
+.no-flex-gap .top > .status { margin-left: auto; }
+.no-flex-gap .crumb > * + * { margin-left: var(--space-3); }
+.no-flex-gap .drawer__item > * + * { margin-left: var(--space-3); }
+.no-flex-gap.tv .drawer__item > * + * { margin-left: var(--space-4); }
+.no-flex-gap .actions > * { margin: 0 var(--space-2) var(--space-2) 0; }
+.no-flex-gap .player__title > * + * { margin-left: var(--space-3); }
+.no-flex-gap .strip > * + * { margin-left: var(--space-4); }
+.no-flex-gap .strip__list > * + * { margin-left: var(--space-3); }

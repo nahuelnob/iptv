@@ -5,7 +5,8 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { handleProxy } from './proxy.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+// `node scripts/serve.mjs site` serves the build (npm run build:web) instead of the source.
+const root = resolve(import.meta.dirname, '..', process.argv[2] ?? '.');
 const port = Number(process.env.PORT) || 5173;
 // Loopback only: the proxy must never be reachable from other machines.
 const host = '127.0.0.1';

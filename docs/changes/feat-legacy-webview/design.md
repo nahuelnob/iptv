@@ -25,3 +25,29 @@ toda la pantalla, así que el elemento fullscreen no aportaba nada ahí.
 
 **Consecuencias:** en el navegador nada cambia. En la app, el `fullscreenchange` nunca
 llega, así que los caminos `fullscreenOwned` y `reenterFullscreen` quedan inactivos ahí.
+
+## Un build con esbuild, publicado por GitHub Actions
+
+**Contexto:** el deco Claro B866V2 trae Chrome 66 y no puede actualizarlo. Ahí `?.` y `??`
+son errores de sintaxis, faltan APIs (`replaceChildren`, `matchAll`, `globalThis`, …) y
+CSS como `gap` en flex, `inset`, `clamp()` y `aspect-ratio`. Pages servía los archivos
+crudos de `main`.
+
+**Decisión:** el código fuente sigue siendo moderno y corre tal cual con `npm start`.
+`scripts/build-web.mjs` genera `site/` con esbuild (`target: chrome66`), `src/polyfills.js`
+cubre las APIs y un bloque al final de `styles/app.css` cubre el CSS que no se puede
+bajar (`gap` en flex se detecta con una medición en `index.html`, porque `@supports`
+responde por el `gap` de grid). Un workflow publica `site/` en Pages en cada push a
+`main`, después de correr los tests.
+
+**Alternativas descartadas:**
+
+- Escribir el código sin `?.`/`??` y sin CSS moderno: degrada todo el proyecto por un
+  dispositivo, y se vuelve a romper con el primer olvido.
+- Babel + core-js: más dependencias y configuración para el mismo resultado; esbuild ya
+  baja la sintaxis y el CSS, y los polyfills que hacen falta son cinco funciones.
+- Dar por perdido el deco: era uno de los dos televisores del usuario.
+
+**Consecuencias:** el sitio publicado ya no es el código fuente: para reproducir un
+problema de Pages hay que usar `npm run serve:site`. La publicación depende de que los
+tests pasen en el workflow.

@@ -6,11 +6,25 @@
   <title>Nodo</title>
   <!-- TV sizing only on a TV: the APK (Capacitor) or a TV browser. Runs before the CSS applies so the
        layout never paints at the wrong size first. -->
+  <!-- Plain ES5 on purpose: this runs as written, without the build, on Chrome 66 TV WebViews. -->
   <script>
-    if (window.Capacitor?.isNativePlatform?.()
-      || /Android TV|GoogleTV|AFT|BRAVIA|SmartTV|SMART-TV|Tizen|Web0S|webOS|HbbTV/i.test(navigator.userAgent)) {
-      document.documentElement.classList.add('tv');
-    }
+    (function () {
+      var root = document.documentElement;
+      var capacitor = window.Capacitor;
+      var native = capacitor && capacitor.isNativePlatform && capacitor.isNativePlatform();
+      if (native || /Android TV|GoogleTV|AFT|BRAVIA|SmartTV|SMART-TV|Tizen|Web0S|webOS|HbbTV/i.test(navigator.userAgent)) {
+        root.classList.add('tv');
+      }
+      // Flex "gap" (Chrome 84+) cannot be detected with @supports, which answers for grid too:
+      // measure it once and let the CSS fall back to margins (.no-flex-gap).
+      var probe = document.createElement('div');
+      probe.style.cssText = 'display:flex;gap:1px;position:absolute;visibility:hidden';
+      probe.appendChild(document.createElement('i'));
+      probe.appendChild(document.createElement('i'));
+      root.appendChild(probe);
+      if (probe.scrollWidth !== 1) root.classList.add('no-flex-gap');
+      root.removeChild(probe);
+    })();
   </script>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">

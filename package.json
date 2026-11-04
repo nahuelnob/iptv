@@ -9,7 +9,9 @@
     "test": "node --test",
     "build:www": "node scripts/build-www.mjs",
     "android:sync": "npm run build:www && cap sync android",
-    "release:android": "node scripts/release-android.mjs"
+    "release:android": "node scripts/release-android.mjs",
+    "build:web": "node scripts/build-web.mjs",
+    "serve:site": "node scripts/build-web.mjs && node scripts/serve.mjs site"
   },
   "engines": {
     "node": ">=20.11"
@@ -20,6 +22,7 @@
     "@capacitor/core": "8.5.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.3"
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
   }
 }
