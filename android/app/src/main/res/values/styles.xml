@@ -18,5 +18,7 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+ draws its own splash (launcher icon on this colour) before @drawable/splash: Nodo's Pantalla. -->
+        <item name="windowSplashScreenBackground">#0E0E0E</item>
     </style>
 </resources>

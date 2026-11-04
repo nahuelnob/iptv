@@ -1,4 +1,4 @@
-/* Layout and components: option C "Mosaico del Living", header variant 2 (side rail + drawer).
+/* Layout and components: option C "Mosaico del Living", header variant 2 (side rail + drawer), in the Nodo brand.
    Ported from design/options/option-c-header-2.html; app-only additions are marked "App:". */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -13,10 +13,13 @@ button, input { font: inherit; color: inherit; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---- Brand + status ------------------------------------------------- */
-.brand__mark { display: grid; place-items: center; flex: none; width: 2.2rem; height: 2.2rem; border-radius: var(--radius-sm); background: var(--n-6); color: var(--n-0); }
-.brand__mark svg { width: 1.4rem; height: 1.4rem; }
+/* The Nodo mark's Negro square measures 1.05:1 on the rail, so it sits on a Hueso plate (the manual: "ponelo sobre
+   Hueso o sobre una superficie clara"; Negro on Hueso is 17.16:1). 2rem keeps the full mark at its 32 px minimum and
+   the 0.5rem inset is the mark's clear space of a quarter of its side. */
+.brand__mark { display: grid; place-items: center; flex: none; width: 3rem; height: 3rem; border-radius: var(--radius-md); background: var(--n-6); }
+.brand__mark svg { display: block; width: 2rem; height: 2rem; }
 .status { display: grid; justify-items: end; gap: 2px; margin: 0 0 0 auto; white-space: nowrap; }
-.status__clock { font-size: var(--text-xl); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.status__clock { font-size: var(--text-xl); font-weight: var(--weight-heading); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .status__context { color: var(--n-4); font-size: var(--text-sm); }
 
 /* ---- Side rail (not focusable: ◀ from the grid opens the drawer) ---- */
@@ -49,13 +52,13 @@ button, input { font: inherit; color: inherit; }
 }
 .crumb__section { color: var(--n-5); }
 .crumb__sep { color: var(--n-4); }
-.crumb__cat { color: var(--n-6); font-weight: 700; }
+.crumb__cat { color: var(--n-6); font-weight: var(--weight-heading); }
 .crumb:hover { background: var(--n-1); }
 .crumb:focus { outline: var(--focus-ring); outline-offset: 2px; }
 .top__hint { color: var(--n-4); font-size: var(--text-sm); white-space: nowrap; }
 
 /* ---- Drawer: sections + every category ------------------------------ */
-.scrim { position: fixed; inset: 0; z-index: 19; background: rgb(12 10 8 / 0.62); animation: fade-in var(--dur-standard) var(--ease-entry); }
+.scrim { position: fixed; inset: 0; z-index: 19; background: var(--scrim); animation: fade-in var(--dur-standard) var(--ease-entry); }
 .drawer {
   position: fixed; top: 0; bottom: 0; left: 0; z-index: 20;
   display: flex; flex-direction: column;
@@ -87,7 +90,7 @@ button, input { font: inherit; color: inherit; }
 .drawer__item small { margin-left: auto; color: var(--n-4); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 .drawer__item:hover { background: var(--n-2); }
 /* Active section / category = bar + ink + weight. */
-.drawer__item[aria-current="true"] { color: var(--n-6); font-weight: 700; }
+.drawer__item[aria-current="true"] { color: var(--n-6); font-weight: var(--weight-ui); }
 .drawer__item[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--n-6); }
 /* Inset ring so it is never clipped by the scrolling list. */
 .drawer__item:focus { outline: var(--focus-ring); outline-offset: -4px; background: var(--n-3); color: var(--n-6); }
@@ -95,7 +98,7 @@ button, input { font: inherit; color: inherit; }
 .drawer__label {
   display: flex; justify-content: space-between; margin: var(--space-2) 0 0; padding: var(--space-3) var(--space-3) var(--space-1) var(--drawer-inset);
   border-top: var(--border-hairline);
-  color: var(--n-4); font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-label); line-height: var(--leading-ui); text-transform: uppercase;
+  color: var(--n-4); font-size: var(--text-sm); font-weight: var(--weight-ui); letter-spacing: var(--tracking-label); line-height: var(--leading-ui); text-transform: uppercase;
 }
 /* The category list takes all remaining height; cues overlay its faded edges and take no layout space. */
 .drawer__scroller { position: relative; flex: 1; min-height: 0; }
@@ -110,9 +113,9 @@ button, input { font: inherit; color: inherit; }
 /* ---- Info line: names whatever is focused --------------------------- */
 .info { min-height: 6.2rem; padding: var(--space-3) var(--safe-x) var(--space-4); }
 /* App: one line, so moving focus never reflows the grid below. */
-.info__name { margin: 0; overflow: hidden; font-size: var(--text-display); font-weight: 700; letter-spacing: var(--tracking-display); line-height: var(--leading-display); text-overflow: ellipsis; white-space: nowrap; }
+.info__name { margin: 0; overflow: hidden; font-size: var(--text-display); font-weight: var(--weight-display); letter-spacing: var(--tracking-display); line-height: var(--leading-display); text-overflow: ellipsis; white-space: nowrap; }
 .info__meta { margin: var(--space-2) 0 0; color: var(--n-5); font-size: var(--text-base); }
-.info__meta b { color: var(--warning-fg); font-weight: 700; }
+.info__meta b { color: var(--warning-fg); font-weight: var(--weight-ui); }
 
 /* ---- Tile grid ------------------------------------------------------ */
 .grid {
@@ -130,7 +133,7 @@ button, input { font: inherit; color: inherit; }
 }
 .tile[data-shade="1"] { background: var(--n-2); }
 .tile[data-shade="2"] { background: var(--n-3); }
-.tile__mono { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.01em; color: var(--n-6); }
+.tile__mono { font-size: var(--text-3xl); font-weight: var(--weight-heading); letter-spacing: -0.01em; color: var(--n-6); }
 .tile__name {
   position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-2);
   overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-align: left; text-overflow: ellipsis; white-space: nowrap;
@@ -151,8 +154,9 @@ button, input { font: inherit; color: inherit; }
 .grid__wide { grid-column: span 2; }
 .tile--wide { height: 100%; aspect-ratio: auto; place-items: end start; padding: var(--space-5); background: var(--accent-subtle); }
 .tile--wide:hover { background: var(--accent-subtle-hover); }
-.tile__kicker { display: block; color: var(--accent); font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; text-align: left; }
-.tile__big { display: block; font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); text-align: left; }
+/* Red is never text off --n-0 (4.14:1 on --accent-subtle), so the kicker is secondary ink. */
+.tile__kicker { display: block; color: var(--n-5); font-size: var(--text-sm); font-weight: var(--weight-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; text-align: left; }
+.tile__big { display: block; font-size: var(--text-2xl); font-weight: var(--weight-heading); letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); text-align: left; }
 .tile--wide:focus { transform: scale(1.04); }
 
 /* ---- Search (native field: Android TV opens its system keyboard) ---- */
@@ -161,22 +165,22 @@ button, input { font: inherit; color: inherit; }
 .search__field {
   width: 100%; max-width: 40rem; min-height: 3.6rem; margin: 0; padding: var(--space-2) var(--space-4);
   border: 0; border-radius: var(--radius-sm); background: var(--n-1);
-  font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading);
+  font-size: var(--text-2xl); font-weight: var(--weight-heading); letter-spacing: var(--tracking-heading);
 }
-.search__field::placeholder { color: var(--n-4); font-weight: 400; }
+.search__field::placeholder { color: var(--n-4); font-weight: var(--weight-text); }
 .search__field:focus { outline: var(--focus-ring); outline-offset: 2px; }
 .results__label { margin: 0; color: var(--n-5); }
 mark { background: none; color: inherit; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
 
 /* ---- Messages ------------------------------------------------------- */
 .panel { max-width: 40rem; margin: var(--space-5) var(--safe-x); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--n-1); }
-.panel h2 { margin: 0 0 var(--space-2); font-size: var(--text-2xl); font-weight: 700; letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); }
+.panel h2 { margin: 0 0 var(--space-2); font-size: var(--text-2xl); font-weight: var(--weight-heading); letter-spacing: var(--tracking-heading); line-height: var(--leading-ui); }
 .panel p { max-width: var(--measure-narrow); margin: 0 0 var(--space-5); color: var(--n-5); }
 .panel--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); }
 .panel--error h2 { color: var(--danger-fg); }
 /* App: buttons wrap instead of overflowing (Spanish labels run 15–30% longer). */
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.button { min-height: 48px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-sm); background: var(--n-2); font-weight: 700; cursor: pointer; }
+.button { min-height: 48px; padding: 0 var(--space-5); border: 0; border-radius: var(--radius-sm); background: var(--n-2); font-weight: var(--weight-ui); cursor: pointer; }
 .button:hover { background: var(--n-3); }
 .button--primary { background: var(--accent); color: var(--accent-on); }
 .button--primary:hover { background: var(--accent-hover); }
@@ -199,9 +203,9 @@ html[data-native-video] .player__video { display: none; }
   position: absolute; top: var(--safe-y); left: var(--safe-x); margin: 0;
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-1) var(--space-1) var(--space-1) var(--space-5); border-radius: 999px;
-  background: rgb(22 19 15 / 0.85); font-size: var(--text-lg); font-weight: 700;
+  background: var(--overlay-pill); font-size: var(--text-lg); font-weight: var(--weight-heading);
 }
-.player__title span { color: var(--n-5); font-weight: 400; }
+.player__title span { color: var(--n-5); font-weight: var(--weight-text); }
 /* App (owner request): the favorite toggle is a compact star in the title pill, not a strip button. */
 .star {
   display: grid; place-items: center; flex: none; width: 48px; height: 48px;
@@ -215,13 +219,13 @@ html[data-native-video] .player__video { display: none; }
 /* App: notices stack, so a warning and the connection status can show together. */
 .player__notices { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: var(--safe-x); display: grid; justify-items: start; gap: var(--space-2); max-width: 34rem; }
 .player__notice { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-fg); }
-.player__status { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: rgb(22 19 15 / 0.85); color: var(--n-5); }
+.player__status { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--overlay-pill); color: var(--n-5); }
 .player__status--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); color: var(--danger-fg); }
 .strip {
   position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y);
   display: flex; align-items: center; gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-lg); background: rgb(33 29 24 / 0.94);
+  border-radius: var(--radius-lg); background: var(--overlay-strip);
   box-shadow: var(--elevation-overlay);
   transition: transform var(--dur-large) var(--ease-entry), opacity var(--dur-standard) var(--ease-entry);
 }

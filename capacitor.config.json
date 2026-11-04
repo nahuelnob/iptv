@@ -1,6 +1,6 @@
 {
   "appId": "com.nahuelnob.iptv",
-  "appName": "IPTV",
+  "appName": "Nodo",
   "webDir": "www",
   "android": {
     "allowMixedContent": true

@@ -6,7 +6,7 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <!-- usesCleartextTraffic: several free-to-air channels only stream over plain http://.
-         banner: the card the Android TV launcher shows (placeholder until the brand assets land). -->
+         banner: the card the Android TV launcher shows, the Nodo wordmark (design/brand/android/tv-banner.svg). -->
     <application
         android:allowBackup="true"
         android:usesCleartextTraffic="true"

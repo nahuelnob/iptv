@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder Android TV launcher banner (320x180dp): app icon on the app's page color.
-     Replace with the brand banner from design/brand/ once it exists. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Android TV launcher banner (320x180dp): the Nodo wordmark on Negro.
+     Converted from design/brand/android/tv-banner.svg; the SVG uses the default nonzero fill rule, so fillType stays nonZero. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="320dp"
-    android:height="180dp">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#16130F" />
-        </shape>
-    </item>
-    <item
-        android:width="96dp"
-        android:height="96dp"
-        android:gravity="center"
-        android:drawable="@mipmap/ic_launcher" />
-</layer-list>
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path
+        android:fillColor="#111111"
+        android:pathData="M0,0H320V180H0Z" />
+    <group
+        android:translateX="72"
+        android:translateY="59.98"
+        android:scaleX="0.37527"
+        android:scaleY="0.37527">
+        <path
+            android:fillColor="#F5F4F0"
+            android:pathData="M0 140V40H26V43.45A47 47 0 0 1 94 85.5V140H68V85.5A21 25 0 0 0 26 85.5V140ZM103 90A52 52 0 1 1 207 90A52 52 0 1 1 103 90ZM129 90A26 30 0 1 0 181 90A26 30 0 1 0 129 90ZM314 140V0H288V44.38A50 52 0 1 0 288 135.62V140ZM240 90A24 30 0 1 1 288 90A24 30 0 1 1 240 90ZM323 90A52 52 0 1 1 427 90A52 52 0 1 1 323 90ZM349 90A26 30 0 1 0 401 90A26 30 0 1 0 349 90Z" />
+        <!-- The red dot: circle cx=452 cy=124 r=17. -->
+        <path
+            android:fillColor="#E8381E"
+            android:pathData="M435,124A17,17 0 1,0 469,124A17,17 0 1,0 435,124Z" />
+    </group>
+</vector>

@@ -1,0 +1,106 @@
+/* Proposed UI tokens for the Nodo brand (direction "B · Punto").
+   Same custom-property names as styles/tokens.css, so the app can adopt them by swapping
+   values. This file is a proposal: styles/tokens.css stays the source of the running app.
+   Dark only on TV: Pantalla ground, Hueso text, Rojo vivo as the single accent (current
+   channel, "En vivo", focus). Contrast ratios are WCAG 2.x, measured, not estimated. */
+:root {
+  color-scheme: dark;
+
+  /* Brand palette (the five approved colours). */
+  --brand-hueso: #f5f4f0;
+  --brand-negro: #111111;
+  --brand-rojo: #e8381e;
+  --brand-gris: #5e5c57;   /* light grounds only: 6.07:1 on Hueso, 2.89:1 on Pantalla */
+  --brand-pantalla: #0e0e0e;
+
+  /* Type: Schibsted Grotesk only, weights 400 / 600 / 800 / 900. */
+  --font-display: "Schibsted Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-text: "Schibsted Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --weight-text: 400;
+  --weight-ui: 600;
+  --weight-heading: 800;
+  --weight-display: 900;
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display: 3.052rem;
+  --tracking-logo: -0.06em;   /* wordmark only */
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-label: 0.06em;
+  --leading-display: 1.05;
+  --leading-ui: 1.3;
+  --leading-body: 1.55;
+  --measure-narrow: 48ch;
+
+  /* Neutrals: Pantalla up to Hueso, warm tint taken from Hueso and Gris. */
+  --n-0: #0e0e0e;   /* page (Pantalla) */
+  --n-1: #181715;   /* rail, chips */
+  --n-2: #22211e;   /* tiles */
+  --n-3: #2f2d2a;   /* focused surfaces, hairlines */
+  --n-4: #9a978f;   /* muted text: 6.62:1 on n-0, 5.52:1 on n-2, 4.71:1 on n-3 */
+  --n-5: #cfccc5;   /* secondary text: 10.04:1 on n-2 */
+  --n-6: #f5f4f0;   /* ink (Hueso): 17.54:1 on n-0, 12.47:1 on n-3 */
+  --video: #0a0a0a; /* letterbox behind the player */
+
+  /* Accent: Rojo vivo. Graphic use (dot, ring, bar) on any surface: 4.61:1 on n-0, 3.28:1 on n-3.
+     As text only on n-0 (4.61:1); on n-1..n-3 it drops under 4.5:1. */
+  --accent: #e8381e;
+  --accent-hover: #f04f36;        /* 5.40:1 on n-0 */
+  --accent-active: #ff6b52;       /* pressed lifts lightness: a darker red drops --accent-on below 4.5:1 */
+  --accent-subtle: #2b1410;       /* Hueso 15.77:1 on it */
+  --accent-subtle-hover: #3a1912;
+  --accent-on: #111111;           /* text on a red fill: 4.51:1 (Hueso on red is 3.80:1, large text only) */
+
+  /* "En vivo" and current channel: always the dot plus a word, never colour alone. */
+  --live: var(--accent);
+  --live-dot: 0.5em;              /* matches the wordmark: dot = 1.3 x stem */
+
+  /* Semantic set. Danger is salmon, not the brand red, and always carries an icon and a sentence. */
+  --success-fg: #8bd49a; --success-bg: #14231a; --success-border: #2c5536;
+  --warning-fg: #f2c66b; --warning-bg: #2a2211; --warning-border: #5d4b22;
+  --danger-fg: #ff9a85;  --danger-bg: #2c1512;  --danger-border: #6b2e22;
+  --info-fg: #a3c4f0;    --info-bg: #15202b;    --info-border: #2d4a66;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+  /* TV overscan safe area. */
+  --safe-x: clamp(16px, 5vw, 96px);
+  --safe-y: clamp(12px, 4.5vh, 54px);
+
+  /* Tighter than the previous Soft Tactile radii; the mark's 18% corner scaled to UI sizes. */
+  --radius-sm: 6px;   /* chips, keys, buttons */
+  --radius-md: 10px;  /* tiles */
+  --radius-lg: 16px;  /* panels */
+  --border-hairline: 1px solid var(--n-3);
+
+  /* The one shadow: things that float over video (zapping strip, drawer). No glow. */
+  --elevation-overlay: 0 16px 48px rgb(0 0 0 / 0.55);
+
+  --ease-entry: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+  --dur-large: 320ms;
+
+  /* Focus: red ring, 3.28:1 or more against every neutral surface it touches. */
+  --focus-ring: 4px solid var(--accent);
+  --focus-offset: 4px;
+  --focus-scale: 1.08;
+
+  --rail-pad: clamp(12px, 1.5vw, 32px);
+  --rail-w: calc(2 * var(--rail-pad) + 3.2rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 0ms;
+    --dur-standard: 0ms;
+    --dur-large: 0ms;
+    --focus-scale: 1;
+  }
+}

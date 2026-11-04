@@ -1,10 +1,24 @@
-/* Design tokens: option C "Mosaico del Living" (design/options/option-c-header-2.html).
-   Soft Tactile, warm dark neutrals (hue ~60), one teal accent. Dark only by product decision. */
+/* Design tokens: Nodo brand, direction "B · Punto" (design/brand/manual.html, design/brand/tokens-propuestos.css).
+   Layout stays option C "Mosaico del Living". Dark only on TV: Pantalla ground, Hueso text, Rojo vivo as the
+   single accent (dot, "en vivo", current channel, focus). Contrast ratios are WCAG 2.x, measured.
+   Red is text only on --n-0 (4.61:1); on any lighter surface use it as a dot, bar, icon or ring, never as text. */
 :root {
   color-scheme: dark;
 
-  --font-display: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-text: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Brand palette (the five approved colours). */
+  --brand-hueso: #f5f4f0;
+  --brand-negro: #111111;
+  --brand-rojo: #e8381e;
+  --brand-gris: #5e5c57;   /* light grounds only: 6.07:1 on Hueso, 2.89:1 on Pantalla */
+  --brand-pantalla: #0e0e0e;
+
+  /* Type: Schibsted Grotesk only, weights 400 / 600 / 800 / 900. */
+  --font-display: "Schibsted Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-text: "Schibsted Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+  --weight-text: 400;
+  --weight-ui: 600;
+  --weight-heading: 800;
+  --weight-display: 900;
   --text-xs: 0.64rem;
   --text-sm: 0.8rem;
   --text-base: 1rem;
@@ -13,6 +27,7 @@
   --text-2xl: 1.953rem;
   --text-3xl: 2.441rem;
   --text-display: 3.052rem;
+  --tracking-logo: -0.06em;   /* wordmark only */
   --tracking-display: -0.03em;
   --tracking-heading: -0.02em;
   --tracking-label: 0.06em;
@@ -21,28 +36,40 @@
   --leading-body: 1.55;
   --measure-narrow: 48ch;
 
-  /* Warm neutrals, hue ~60 */
-  --n-0: #16130f;   /* page */
-  --n-1: #211d18;   /* tile A, chips */
-  --n-2: #2d2822;   /* tile B */
-  --n-3: #3a342d;   /* tile C, focused surfaces */
-  --n-4: #a0958a;   /* muted: 6.3:1 on n-0, 5.0:1 on n-2 */
-  --n-5: #d3cabf;   /* secondary: 9.0:1 on n-2 */
-  --n-6: #f5f0ea;   /* ink: 10.9:1 on n-3 */
-  --video: #0c0a08;
+  /* Neutrals: Pantalla up to Hueso, warm tint taken from Hueso and Gris. */
+  --n-0: #0e0e0e;   /* page (Pantalla) */
+  --n-1: #181715;   /* rail, chips */
+  --n-2: #22211e;   /* tiles */
+  --n-3: #2f2d2a;   /* focused surfaces, hairlines */
+  --n-4: #9a978f;   /* muted text: 6.62:1 on n-0, 5.52:1 on n-2, 4.71:1 on n-3 */
+  --n-5: #cfccc5;   /* secondary text: 10.04:1 on n-2 */
+  --n-6: #f5f4f0;   /* ink (Hueso): 17.54:1 on n-0, 12.47:1 on n-3 */
+  --video: #0a0a0a; /* letterbox behind the player */
 
-  /* Accent: teal */
-  --accent: #4fd1bc;        /* 9.9:1 on n-0 */
-  --accent-hover: #6fdcca;
-  --accent-active: #34b8a3;
-  --accent-subtle: #13302b;
-  --accent-subtle-hover: #18403a;
-  --accent-on: #08201c;     /* 9.1:1 on accent */
+  /* Translucent surfaces over video and content. Derived from the ramp above (rgb() of --n-0 / --n-1),
+     because the app avoids color-mix() for older Android TV WebViews. */
+  --scrim: rgb(14 14 14 / 0.62);         /* --n-0, behind the drawer */
+  --overlay-pill: rgb(14 14 14 / 0.85);  /* --n-0, player title and status */
+  --overlay-strip: rgb(24 23 21 / 0.94); /* --n-1, zapping strip */
 
-  --success-fg: #8fd99a; --success-bg: #14231a; --success-border: #2c5536;
-  --warning-fg: #f2cf7e; --warning-bg: #2a2212; --warning-border: #5d4b22;
-  --danger-fg: #ff9f8c;  --danger-bg: #2c1713;  --danger-border: #6b3025;
-  --info-fg: #9cc8f5;    --info-bg: #15202b;    --info-border: #2d4a66;
+  /* Accent: Rojo vivo. Graphic use (dot, ring, bar) on any surface: 4.61:1 on n-0, 3.28:1 on n-3.
+     As text only on n-0 (4.61:1); on n-1..n-3 it drops under 4.5:1. */
+  --accent: #e8381e;
+  --accent-hover: #f04f36;        /* 5.40:1 on n-0 */
+  --accent-active: #ff6b52;       /* pressed lifts lightness: a darker red drops --accent-on below 4.5:1 */
+  --accent-subtle: #2b1410;       /* Hueso 15.77:1 on it */
+  --accent-subtle-hover: #3a1912;
+  --accent-on: #111111;           /* text on a red fill: 4.51:1 (Hueso on red is 3.80:1, large text only) */
+
+  /* "En vivo" and current channel: always the dot plus a word, never colour alone. */
+  --live: var(--accent);
+  --live-dot: 0.5em;              /* matches the wordmark: dot = 1.3 x stem */
+
+  /* Semantic set. Danger is salmon, not the brand red, and always carries an icon and a sentence. */
+  --success-fg: #8bd49a; --success-bg: #14231a; --success-border: #2c5536;
+  --warning-fg: #f2c66b; --warning-bg: #2a2211; --warning-border: #5d4b22;
+  --danger-fg: #ff9a85;  --danger-bg: #2c1512;  --danger-border: #6b2e22;
+  --info-fg: #a3c4f0;    --info-bg: #15202b;    --info-border: #2d4a66;
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
   --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
@@ -50,13 +77,14 @@
   --safe-x: clamp(16px, 5vw, 96px);
   --safe-y: clamp(12px, 4.5vh, 54px);
 
-  --radius-sm: 10px;  /* chips, keys, buttons */
-  --radius-md: 16px;  /* tiles */
-  --radius-lg: 24px;  /* panels */
+  /* The mark's 18% corner scaled to UI sizes. */
+  --radius-sm: 6px;   /* chips, keys, buttons */
+  --radius-md: 10px;  /* tiles */
+  --radius-lg: 16px;  /* panels */
   --border-hairline: 1px solid var(--n-3);
 
-  /* The one soft shadow: things that float over content (zapping strip, drawer). */
-  --elevation-overlay: 0 20px 60px rgb(0 0 0 / 0.5);
+  /* The one shadow: things that float over video (zapping strip, drawer). No glow. */
+  --elevation-overlay: 0 16px 48px rgb(0 0 0 / 0.55);
 
   --ease-entry: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
@@ -64,6 +92,7 @@
   --dur-standard: 200ms;
   --dur-large: 320ms;
 
+  /* Focus: red ring, 3.28:1 or more against every neutral surface it touches. */
   --focus-ring: 4px solid var(--accent);
   --focus-offset: 4px;
   --focus-scale: 1.08;
@@ -72,4 +101,13 @@
      an empty gap inside a rail with its own background, and Android TV does not overscan the left edge. */
   --rail-pad: clamp(12px, 1.5vw, 32px);
   --rail-w: calc(2 * var(--rail-pad) + 3.2rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 0ms;
+    --dur-standard: 0ms;
+    --dur-large: 0ms;
+    --focus-scale: 1;
+  }
 }

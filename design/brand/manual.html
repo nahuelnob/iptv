@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nodo. · Manual de marca</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hueso: #F5F4F0; --negro: #111111; --rojo: #E8381E; --gris: #5E5C57; --pantalla: #0E0E0E;
+    --rule: #DCDAD3; --tint: #ECEAE4;
+    --n-1: #181715; --n-2: #22211E; --n-3: #2F2D2A; --n-4: #9A978F; --n-5: #CFCCC5;
+    --font: "Schibsted Grotesk", system-ui, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--hueso); color: var(--negro); font: 400 1rem/1.6 var(--font); }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:hover { text-decoration-thickness: 2px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--negro); outline-offset: 3px; border-radius: 2px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 56px); }
+
+  header.top { padding: 64px 0 48px; border-bottom: 1px solid var(--rule); }
+  header.top .wm { width: min(420px, 80vw); height: auto; display: block; }
+  header.top p.kicker { margin: 32px 0 0; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gris); }
+  header.top h1 { margin: 4px 0 0; font-weight: 800; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.03em; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-top: 32px; font-size: 0.9rem; }
+  nav.toc a { text-decoration: none; padding: 10px 0; display: inline-block; min-height: 44px; }
+  nav.toc a span { color: var(--gris); font-variant-numeric: tabular-nums; margin-right: 6px; }
+
+  section { padding: 96px 0 0; }
+  section > .wrap > header { display: grid; grid-template-columns: 4rem 1fr; align-items: baseline; border-top: 2px solid var(--negro); padding-top: 16px; margin-bottom: 40px; }
+  .num { font-weight: 600; font-size: 0.8rem; color: var(--gris); font-variant-numeric: tabular-nums; }
+  h2 { margin: 0; font-weight: 900; font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1.05; letter-spacing: -0.04em; }
+  h3 { margin: 56px 0 12px; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; line-height: 1.3; }
+  h3:first-child { margin-top: 0; }
+  p, li { max-width: 66ch; }
+  p.lead { font-size: 1.25rem; line-height: 1.5; max-width: 58ch; }
+  .muted { color: var(--gris); }
+  small, .cap { font-size: 0.8rem; color: var(--gris); }
+  code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.85em; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+  figure { margin: 0; }
+  figcaption { margin-top: 10px; font-size: 0.85rem; color: var(--gris); }
+  .plate { display: grid; place-items: center; padding: 40px 24px; min-height: 180px; background: var(--tint); }
+  .plate.dark { background: var(--pantalla); }
+  .plate.black { background: var(--negro); }
+  .plate.white { background: #FFFFFF; outline: 1px solid var(--rule); outline-offset: -1px; }
+  .plate img, .plate svg { max-width: 100%; height: auto; }
+  svg.diagram { width: 100%; height: auto; display: block; background: #FFFFFF; outline: 1px solid var(--rule); outline-offset: -1px; }
+  svg.diagram.small { padding: 24px 22%; }
+  svg.diagram text { font-family: var(--font); fill: var(--gris); }
+
+  /* Spec tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gris); }
+  td.ok::before { content: "Pasa "; font-weight: 600; }
+  td.no { font-weight: 600; }
+  .chip { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 8px; outline: 1px solid rgb(0 0 0 / 0.15); }
+
+  /* Colour swatches */
+  .swatches { display: grid; grid-template-columns: 1.7fr 1.5fr 1.1fr 1.1fr 1.5fr; gap: 0; border: 1px solid var(--rule); }
+  .sw { min-height: 260px; padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
+  .sw b { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; }
+  .sw span { font-size: 0.85rem; }
+  @media (max-width: 760px) { .swatches { grid-template-columns: 1fr 1fr; } .sw { min-height: 150px; } }
+
+  /* Incorrect uses */
+  .donts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+  .dont .plate { min-height: 150px; padding: 28px 20px; }
+  .dont p { margin: 10px 0 0; font-size: 0.9rem; }
+  .dont p strong { font-weight: 900; margin-right: 6px; }
+
+  /* Type specimens */
+  .spec { border-top: 1px solid var(--rule); padding: 20px 0; display: grid; grid-template-columns: 9rem 1fr; gap: 16px; align-items: baseline; }
+  .spec .cap { margin: 0; }
+  .spec .s { font-size: clamp(1.5rem, 4vw, 2.6rem); line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+
+  /* App mock: the TV ground */
+  .tv { background: var(--pantalla); color: var(--hueso); aspect-ratio: 16 / 9; display: grid; grid-template-columns: 72px 1fr; overflow: hidden; font-family: var(--font); container-type: inline-size; }
+  .tv .rail { background: var(--n-1); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; }
+  .tv .rail i { width: 24px; height: 4px; background: var(--n-3); display: block; border-radius: 2px; }
+  .tv .main { padding: 4cqw 4cqw 0; min-width: 0; }
+  .tv h4 { margin: 0 0 2.2cqw; font-weight: 800; font-size: 3.2cqw; letter-spacing: -0.02em; }
+  .tv .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8cqw; }
+  .tv .tile { background: var(--n-2); border-radius: 10px; aspect-ratio: 16 / 10; padding: 1.4cqw; display: flex; flex-direction: column; justify-content: space-between; font-weight: 600; font-size: 1.7cqw; color: var(--n-5); }
+  .tv .tile .name { color: var(--hueso); font-weight: 800; font-size: 2cqw; letter-spacing: -0.01em; }
+  .tv .tile.focus { outline: 4px solid var(--rojo); outline-offset: 4px; transform: scale(1.08); background: var(--n-3); }
+  .tv .tile.now .tag { color: var(--hueso); }
+  .tv .tag { display: inline-flex; align-items: center; gap: 0.45em; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 1.3cqw; }
+  .tv .tag::before { content: ""; width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--rojo); }
+  .tv .tile:not(.now) .tag { visibility: hidden; }
+  .tv .bar { margin-top: 3.4cqw; background: var(--n-1); border-radius: 16px; padding: 1.8cqw 2.2cqw; display: flex; align-items: center; justify-content: space-between; gap: 2cqw; }
+  .tv .bar .t { font-weight: 800; font-size: 2.2cqw; letter-spacing: -0.02em; }
+  .tv .bar .live { color: var(--hueso); font-size: 1.5cqw; }
+  .tv .bar .btn { background: var(--hueso); color: var(--negro); font-weight: 800; font-size: 1.6cqw; padding: 0.9cqw 1.8cqw; border-radius: 6px; }
+
+  /* Voice */
+  .voice td:first-child { font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule); }
+  .pair > div { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--rule); }
+  .pair .label { font-weight: 900; display: block; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  ul.dl { list-style: none; padding: 0; margin: 0; columns: 2 300px; column-gap: 32px; }
+  ul.dl li { break-inside: avoid; border-bottom: 1px solid var(--rule); }
+  ul.dl a { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; min-height: 44px; text-decoration: none; }
+  ul.dl a span:last-child { color: var(--gris); font-size: 0.85rem; }
+
+  footer { margin-top: 128px; padding: 32px 0 48px; border-top: 1px solid var(--rule); font-size: 0.85rem; color: var(--gris); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } .tv .tile.focus { transform: none; } }
+  @media print { section { break-inside: avoid-page; padding-top: 48px; } nav.toc { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- Geometry, drawn once. Colours come from custom properties on each <use>. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="wm" viewBox="0 0 469 142">
+    <path style="fill:var(--wm-ink,#111111)" d="M0 140V40H26V43.45A47 47 0 0 1 94 85.5V140H68V85.5A21 25 0 0 0 26 85.5V140ZM103 90A52 52 0 1 1 207 90A52 52 0 1 1 103 90ZM129 90A26 30 0 1 0 181 90A26 30 0 1 0 129 90ZM314 140V0H288V44.38A50 52 0 1 0 288 135.62V140ZM240 90A24 30 0 1 1 288 90A24 30 0 1 1 240 90ZM323 90A52 52 0 1 1 427 90A52 52 0 1 1 323 90ZM349 90A26 30 0 1 0 401 90A26 30 0 1 0 349 90Z"/>
+    <circle style="fill:var(--wm-dot,#E8381E)" cx="452" cy="124" r="17"/>
+  </symbol>
+  <symbol id="mk" viewBox="0 0 100 100">
+    <rect width="100" height="100" rx="18" style="fill:var(--mk-bg,#111111)"/>
+    <path style="fill:var(--mk-n,#F5F4F0)" d="M23 71V47A20 20 0 0 1 63 47V71H52V47A9 9 0 0 0 34 47V71Z"/>
+    <circle style="fill:var(--mk-dot,#E8381E)" cx="75.2" cy="63.8" r="7.2"/>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <svg class="wm" viewBox="0 0 469 142" role="img" aria-label="nodo."><use href="#wm"/></svg>
+    <p class="kicker">Manual de marca · versión 1 · noviembre 2026</p>
+    <h1>La señal abierta, en un solo lugar.</h1>
+    <nav class="toc" aria-label="Contenido">
+      <a href="#concepto"><span>01</span>Concepto</a>
+      <a href="#nombre"><span>02</span>El nombre</a>
+      <a href="#logo"><span>03</span>El logo</a>
+      <a href="#color"><span>04</span>Color</a>
+      <a href="#tipografia"><span>05</span>Tipografía</a>
+      <a href="#app"><span>06</span>La marca en la app</a>
+      <a href="#voz"><span>07</span>Tono de voz</a>
+      <a href="#descargas"><span>08</span>Descargas</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section id="concepto">
+  <div class="wrap">
+    <header><span class="num">01</span><h2>Concepto</h2></header>
+    <p class="lead">Nodo junta los canales de aire de la Argentina en una sola grilla, en la web y en el decodificador del living. Un nodo es el punto donde se cruzan las señales: eso es la app.</p>
+    <div class="grid2" style="margin-top:40px">
+      <div>
+        <h3>Un punto, dos lecturas</h3>
+        <p>El punto rojo que cierra la palabra es el nodo. En la app tiene un trabajo concreto: marca lo que está <strong>en vivo</strong> y el canal que estás mirando. Cada vez que aparece, significa “esto está pasando ahora”.</p>
+      </div>
+      <div>
+        <h3>Moderno y tecnológico, sin ruido</h3>
+        <p>La identidad se apoya en tres cosas: una palabra muy pesada, un negro casi puro y un solo rojo. No hay degradados, brillos ni texturas. La tecnología se nota en la precisión, no en los efectos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="nombre">
+  <div class="wrap">
+    <header><span class="num">02</span><h2>El nombre</h2></header>
+    <div class="grid2">
+      <div>
+        <p class="lead">Nodo. Cuatro letras, se dice igual en todo el país y no hace falta explicarlo.</p>
+        <p>Es una palabra común del castellano, corta para el control remoto y para la pantalla de inicio del televisor, donde el nombre convive con decenas de apps.</p>
+      </div>
+      <div>
+        <h3>Cómo se escribe</h3>
+        <table>
+          <thead><tr><th>Contexto</th><th>Forma</th></tr></thead>
+          <tbody>
+            <tr><td>Logo</td><td><strong>nodo.</strong> en minúscula, con el punto rojo. Siempre el archivo, nunca tipeado.</td></tr>
+            <tr><td>Texto corrido</td><td><strong>Nodo</strong>, con mayúscula inicial y sin punto: “Abrí Nodo en el decodificador”.</td></tr>
+            <tr><td>Tienda y launcher</td><td><strong>Nodo</strong></td></tr>
+            <tr><td>Nunca</td><td>NODO, NoDo, Nodo TV, “la Nodo”.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="logo">
+  <div class="wrap">
+    <header><span class="num">03</span><h2>El logo</h2></header>
+
+    <h3>Construcción</h3>
+    <p>El logo está dibujado, no tipeado. Cada letra sale de círculos, elipses y rectángulos sobre una unidad donde la altura de x vale 100. Las astas miden 26 y los trazos curvos se afinan a 22 arriba y abajo para que el peso se vea parejo. Las letras redondas sobrepasan 2 unidades la línea base y la altura de x. El interletrado es muy cerrado a propósito: la sensación de la grotesca en peso 900 con −0,06 em.</p>
+    <figure style="margin-top:24px">
+      <svg class="diagram" viewBox="-70 -36 600 256" role="img" aria-label="Construcción del logo: línea base, altura de x de 100 unidades, ascendente de 140, astas de 26 y punto de 34.">
+        <g stroke="#E8381E" stroke-width="0.8" fill="none">
+          <line x1="-4" y1="140" x2="530" y2="140"/>
+          <line x1="-4" y1="40" x2="530" y2="40" stroke-dasharray="4 3"/>
+          <line x1="-4" y1="0" x2="530" y2="0" stroke-dasharray="4 3"/>
+        </g>
+        <g stroke="#5E5C57" stroke-width="0.6" fill="none" stroke-dasharray="2 2">
+          <circle cx="47" cy="85.5" r="47"/>
+          <circle cx="155" cy="90" r="52"/>
+          <ellipse cx="264" cy="90" rx="50" ry="52"/>
+        </g>
+        <use href="#wm" x="0" y="0" width="469" height="142" style="--wm-ink:rgb(17 17 17 / 0.88)"/>
+        <g font-size="10" text-anchor="end">
+          <text x="-10" y="143.5">0</text>
+          <text x="-10" y="43.5">100 · x</text>
+          <text x="-10" y="3.5">140</text>
+        </g>
+        <g stroke="#111111" stroke-width="0.8">
+          <line x1="0" y1="158" x2="26" y2="158"/><line x1="0" y1="153" x2="0" y2="163"/><line x1="26" y1="153" x2="26" y2="163"/>
+          <line x1="435" y1="158" x2="469" y2="158"/><line x1="435" y1="153" x2="435" y2="163"/><line x1="469" y1="153" x2="469" y2="163"/>
+          <line x1="94" y1="194" x2="103" y2="194"/><line x1="207" y1="194" x2="214" y2="194"/><line x1="314" y1="194" x2="323" y2="194"/><line x1="427" y1="194" x2="435" y2="194"/>
+        </g>
+        <g font-size="10" text-anchor="middle">
+          <text x="13" y="174">asta 26</text>
+          <text x="452" y="174">punto 34</text>
+          <text x="98.5" y="210">9</text><text x="210.5" y="210">7</text><text x="318.5" y="210">9</text><text x="431" y="210">8</text>
+          <text x="264" y="-14">ascendente 140</text>
+        </g>
+      </svg>
+      <figcaption>La n del logo es el mismo arco del símbolo: asta izquierda a altura completa y un hombro semicircular. Los espacios entre letras (9, 7, 9, 8) son más chicos entre curvas que entre una recta y una curva, para que el ritmo se vea parejo.</figcaption>
+    </figure>
+
+    <div class="grid2" style="margin-top:40px">
+      <figure>
+        <svg class="diagram small" viewBox="-14 -16 132 134" role="img" aria-label="Construcción del símbolo: cuadrado de 100 con radio 18, n de trazo 11 y punto de 14,4.">
+          <g stroke="#E8381E" stroke-width="0.4" fill="none" stroke-dasharray="2 1.5">
+            <line x1="-4" y1="27" x2="104" y2="27"/><line x1="-4" y1="71" x2="104" y2="71"/>
+            <line x1="23" y1="-4" x2="23" y2="104"/><line x1="82.4" y1="-4" x2="82.4" y2="104"/>
+            <circle cx="43" cy="47" r="20"/>
+          </g>
+          <use href="#mk" x="0" y="0" width="100" height="100"/>
+          <g font-size="6.5" text-anchor="middle">
+            <text x="50" y="-7">100 × 100 · radio 18</text>
+            <text x="43" y="112">trazo 11</text>
+            <text x="80" y="112" text-anchor="start">punto 14,4</text>
+          </g>
+        </svg>
+        <figcaption>Símbolo: cuadrado negro de radio 18 % del lado, n blanca en arco (dos astas y un hombro semicircular, terminales rectas, trazo 11 %) y el punto rojo abajo a la derecha, sobre la línea base de la n.</figcaption>
+      </figure>
+      <figure>
+        <div class="plate white" style="min-height:100%">
+          <div style="display:flex;gap:40px;align-items:end">
+            <div style="text-align:center"><img src="logo/mark.svg" width="96" height="96" alt="Símbolo completo"><div class="cap">32 px o más</div></div>
+            <div style="text-align:center"><img src="logo/mark-small.svg" width="48" height="48" alt="Símbolo simplificado"><div class="cap">24 px o menos</div></div>
+          </div>
+        </div>
+        <figcaption>Desde 24 px para abajo la n deja de leerse: el símbolo se simplifica al cuadrado negro con el punto, más grande para que sobreviva en 16 px.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Versiones</h3>
+    <div class="grid3">
+      <figure><div class="plate"><img src="logo/logo.svg" width="220" alt="nodo. en negro con punto rojo"></div><figcaption><code>logo.svg</code> · principal, fondos claros</figcaption></figure>
+      <figure><div class="plate dark"><img src="logo/logo-on-dark.svg" width="220" alt="nodo. en hueso con punto rojo"></div><figcaption><code>logo-on-dark.svg</code> · fondos oscuros y la app</figcaption></figure>
+      <figure><div class="plate white"><img src="logo/mono-dark.svg" width="220" alt="nodo. en negro, un solo color"></div><figcaption><code>mono-dark.svg</code> · un color, para sellos, grabados o impresión a una tinta</figcaption></figure>
+      <figure><div class="plate black"><img src="logo/mono-light.svg" width="220" alt="nodo. en hueso, un solo color"></div><figcaption><code>mono-light.svg</code> · un color sobre fondo oscuro o fotografía oscura</figcaption></figure>
+      <figure><div class="plate"><img src="logo/mark.svg" width="88" height="88" alt="Símbolo"></div><figcaption><code>mark.svg</code> · símbolo, avatar e ícono</figcaption></figure>
+      <figure><div class="plate"><img src="logo/mark-small.svg" width="40" height="40" alt="Símbolo simplificado"></div><figcaption><code>mark-small.svg</code> · favicon y tamaños de 24 px o menos</figcaption></figure>
+    </div>
+    <p class="muted" style="margin-top:20px">Sobre Pantalla (#0E0E0E), el cuadrado del símbolo casi no se distingue del fondo (1,02:1): ahí lo sostienen la n y el punto. Si el borde del símbolo tiene que verse, ponelo sobre Hueso o sobre una superficie clara.</p>
+
+    <h3>Área de protección</h3>
+    <div class="grid2">
+      <figure>
+        <svg class="diagram" viewBox="-80 -80 629 302" role="img" aria-label="Área de protección del logo: media altura de x en cada lado.">
+          <rect x="-50" y="-50" width="569" height="242" fill="#F5F4F0" stroke="#E8381E" stroke-width="1" stroke-dasharray="5 4"/>
+          <rect x="0" y="0" width="469" height="142" fill="none" stroke="#5E5C57" stroke-width="0.6"/>
+          <use href="#wm" x="0" y="0" width="469" height="142"/>
+          <g fill="#E8381E" opacity="0.18"><rect x="-50" y="40" width="50" height="50"/><rect x="469" y="40" width="50" height="50"/><rect x="200" y="-50" width="50" height="50"/><rect x="200" y="142" width="50" height="50"/></g>
+          <g font-size="22" text-anchor="middle"><text x="-25" y="73">½x</text><text x="494" y="73">½x</text><text x="225" y="-17">½x</text><text x="225" y="175">½x</text></g>
+        </svg>
+        <figcaption>Logo: dejá libre la mitad de la altura de x (½x, la mitad del alto de la “o”) en los cuatro lados. Nada entra ahí: ni texto, ni bordes, ni otros logos.</figcaption>
+      </figure>
+      <figure>
+        <svg class="diagram small" viewBox="-40 -40 180 180" role="img" aria-label="Área de protección del símbolo: un cuarto del lado.">
+          <rect x="-25" y="-25" width="150" height="150" fill="#F5F4F0" stroke="#E8381E" stroke-width="0.8" stroke-dasharray="4 3"/>
+          <use href="#mk" x="0" y="0" width="100" height="100"/>
+          <g font-size="9" text-anchor="middle"><text x="-12.5" y="54">¼</text><text x="112.5" y="54">¼</text><text x="50" y="-10">¼</text><text x="50" y="117">¼</text></g>
+        </svg>
+        <figcaption>Símbolo: un cuarto del lado alrededor. En las grillas de íconos del sistema manda la grilla del sistema.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Tamaños mínimos</h3>
+    <table>
+      <thead><tr><th>Pieza</th><th>Pantalla</th><th>Impresión</th><th>A tamaño real</th></tr></thead>
+      <tbody>
+        <tr><td>Logo <code>nodo.</code></td><td>72 px de ancho</td><td>20 mm de ancho</td><td><img src="logo/logo.svg" width="72" alt="Logo a 72 px"></td></tr>
+        <tr><td>Símbolo completo</td><td>32 px</td><td>8 mm</td><td><img src="logo/mark.svg" width="32" height="32" alt="Símbolo a 32 px"></td></tr>
+        <tr><td>Símbolo simplificado</td><td>16 px a 24 px</td><td>4 mm a 7 mm</td><td><img src="logo/mark-small.svg" width="16" height="16" alt="Símbolo simplificado a 16 px"> <img src="logo/mark-small.svg" width="24" height="24" alt="Símbolo simplificado a 24 px"></td></tr>
+      </tbody>
+    </table>
+    <p class="cap">Por debajo de 72 px el interletrado cerrado empieza a empastar las letras: usá el símbolo.</p>
+
+    <h3>Usos incorrectos</h3>
+    <div class="donts">
+      <figure class="dont"><div class="plate white"><svg viewBox="0 0 469 142" width="220" height="50" preserveAspectRatio="none" aria-hidden="true"><use href="#wm"/></svg></div><p><strong>No</strong>lo estires ni lo comprimas.</p></figure>
+      <figure class="dont"><div class="plate white"><svg viewBox="0 0 469 142" width="200" aria-hidden="true"><use href="#wm" style="--wm-dot:#2B59C3"/></svg></div><p><strong>No</strong>cambies el color del punto. Es rojo o es del mismo color que la palabra.</p></figure>
+      <figure class="dont"><div class="plate white"><svg viewBox="0 0 469 142" width="200" aria-hidden="true"><use href="#wm" style="--wm-dot:transparent"/></svg></div><p><strong>No</strong>saques el punto. Sin punto no hay nodo.</p></figure>
+      <figure class="dont"><div class="plate white"><span style="font:700 2.6rem/1 Georgia, 'Times New Roman', serif">nodo.</span></div><p><strong>No</strong>lo escribas con una tipografía: usá siempre el archivo.</p></figure>
+      <figure class="dont"><div class="plate white"><span style="font:900 2.6rem/1 var(--font);letter-spacing:-0.06em">Nodo<span style="color:var(--rojo)">.</span></span></div><p><strong>No</strong>uses mayúscula en el logo.</p></figure>
+      <figure class="dont"><div class="plate white"><svg viewBox="-20 -20 509 182" width="210" aria-hidden="true"><defs><linearGradient id="bad" x1="0" x2="1"><stop offset="0" stop-color="#E8381E"/><stop offset="1" stop-color="#7A2BD8"/></linearGradient></defs><use href="#wm" style="--wm-ink:url(#bad);filter:drop-shadow(0 0 8px #E8381E)"/></svg></div><p><strong>No</strong>le agregues degradados, brillos ni sombras.</p></figure>
+      <figure class="dont"><div class="plate" style="background:var(--rojo)"><svg viewBox="0 0 469 142" width="200" aria-hidden="true"><use href="#wm" style="--wm-ink:#F5F4F0"/></svg></div><p><strong>No</strong>lo pongas sobre rojo: el punto desaparece.</p></figure>
+      <figure class="dont"><div class="plate white"><svg viewBox="0 0 469 142" width="190" style="transform:rotate(-12deg)" aria-hidden="true"><use href="#wm"/></svg></div><p><strong>No</strong>lo rotes ni lo inclines.</p></figure>
+      <figure class="dont"><div class="plate white"><svg viewBox="0 0 469 142" width="200" aria-hidden="true"><use href="#wm" style="--wm-ink:#E8381E"/></svg></div><p><strong>No</strong>pintes toda la palabra de rojo. El rojo es solo el punto.</p></figure>
+    </div>
+  </div>
+</section>
+
+<section id="color">
+  <div class="wrap">
+    <header><span class="num">04</span><h2>Color</h2></header>
+    <p class="lead">Cinco colores, uno solo con tono. El rojo ocupa poco y por eso se ve: el punto, “en vivo”, el canal actual y el foco.</p>
+    <div class="swatches" style="margin-top:32px">
+      <div class="sw" style="background:#F5F4F0;color:#111111"><b>Hueso</b><span>#F5F4F0</span><span>RGB 245 244 240</span><span>Fondo claro, texto sobre oscuro</span></div>
+      <div class="sw" style="background:#111111;color:#F5F4F0"><b>Negro</b><span>#111111</span><span>RGB 17 17 17</span><span>Tinta y símbolo</span></div>
+      <div class="sw" style="background:#E8381E;color:#111111"><b>Rojo vivo</b><span>#E8381E</span><span>RGB 232 56 30</span><span>El único acento</span></div>
+      <div class="sw" style="background:#5E5C57;color:#F5F4F0"><b>Gris</b><span>#5E5C57</span><span>RGB 94 92 87</span><span>Texto secundario</span></div>
+      <div class="sw" style="background:#0E0E0E;color:#F5F4F0;outline:1px solid #2F2D2A;outline-offset:-1px"><b>Pantalla</b><span>#0E0E0E</span><span>RGB 14 14 14</span><span>Fondo de la app en TV</span></div>
+    </div>
+    <p class="cap" style="margin-top:12px">Proporción de uso aproximada: Pantalla o Hueso 70 %, Negro 20 %, Gris 6 %, Rojo menos del 5 %.</p>
+
+    <h3>Contrastes medidos</h3>
+    <p>Relación de contraste WCAG 2.x calculada sobre los valores HEX. Texto normal necesita 4,5:1; texto grande (24 px, o 19 px en negrita) y elementos gráficos como el logo, el punto o el anillo de foco necesitan 3:1.</p>
+    <table>
+      <thead><tr><th>Par</th><th>Contraste</th><th>Texto normal</th><th>Gráfico / texto grande</th></tr></thead>
+      <tbody>
+        <tr><td><span class="chip" style="background:#111111"></span>Negro sobre Hueso</td><td>17,16:1</td><td class="ok">AAA</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#F5F4F0"></span>Hueso sobre Pantalla</td><td>17,54:1</td><td class="ok">AAA</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#F5F4F0"></span>Hueso sobre Negro</td><td>17,16:1</td><td class="ok">AAA</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#5E5C57"></span>Gris sobre Hueso</td><td>6,07:1</td><td class="ok">AA</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#E8381E"></span>Rojo sobre Pantalla</td><td>4,61:1</td><td class="ok">AA, justo</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#E8381E"></span>Rojo sobre Negro (punto del símbolo)</td><td>4,51:1</td><td class="ok">AA, justo</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#111111"></span>Negro sobre Rojo</td><td>4,51:1</td><td class="ok">AA, justo</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#E8381E"></span>Rojo sobre Hueso (punto del logo)</td><td>3,80:1</td><td class="no">No: nunca texto rojo sobre Hueso</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#F5F4F0"></span>Hueso sobre Rojo</td><td>3,80:1</td><td class="no">No: solo texto grande</td><td class="ok"></td></tr>
+        <tr><td><span class="chip" style="background:#5E5C57"></span>Gris sobre Pantalla</td><td>2,89:1</td><td class="no">No</td><td class="no">No: el Gris es solo para fondos claros</td></tr>
+        <tr><td><span class="chip" style="background:#111111"></span>Negro sobre Pantalla (borde del símbolo)</td><td>1,02:1</td><td class="no">No</td><td class="no">No: el cuadrado se funde con el fondo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tipografia">
+  <div class="wrap">
+    <header><span class="num">05</span><h2>Tipografía</h2></header>
+    <div class="grid2">
+      <div>
+        <p class="lead">Schibsted Grotesk, y nada más.</p>
+        <p>Una grotesca con mucho carácter en los pesos altos y muy legible en los bajos. Es libre (licencia OFL) y está en <a href="https://fonts.google.com/specimen/Schibsted+Grotesk">Google Fonts</a>. Usamos cuatro pesos: 400 para leer, 600 para la interfaz, 800 para títulos y 900 solo para títulos muy grandes.</p>
+        <p class="cap">Si la fuente no carga, la interfaz cae en la tipografía del sistema. El logo no depende de ninguna fuente: está dibujado.</p>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>Uso</th><th>Peso</th><th>Tamaño</th><th>Interletrado</th></tr></thead>
+          <tbody>
+            <tr><td>Título de pantalla</td><td>900</td><td>3,05 rem</td><td>−0,03 em</td></tr>
+            <tr><td>Sección</td><td>800</td><td>1,95 rem</td><td>−0,02 em</td></tr>
+            <tr><td>Nombre de canal</td><td>800</td><td>1,25 rem</td><td>−0,01 em</td></tr>
+            <tr><td>Interfaz, botones</td><td>600</td><td>1 rem</td><td>0</td></tr>
+            <tr><td>Texto</td><td>400</td><td>1 rem</td><td>0</td></tr>
+            <tr><td>Etiqueta (EN VIVO)</td><td>600</td><td>0,8 rem</td><td>+0,06 em, mayúsculas</td></tr>
+          </tbody>
+        </table>
+        <p class="cap">Escala 1,25. En el televisor el tamaño base es más grande porque se mira a tres metros.</p>
+      </div>
+    </div>
+    <div style="margin-top:40px">
+      <div class="spec"><p class="cap">900 · Black</p><div class="s" style="font-weight:900;letter-spacing:-0.04em">Volver a los canales</div></div>
+      <div class="spec"><p class="cap">800 · ExtraBold</p><div class="s" style="font-weight:800">Seguir viendo</div></div>
+      <div class="spec"><p class="cap">600 · SemiBold</p><div class="s" style="font-weight:600;letter-spacing:0">Buscá un canal</div></div>
+      <div class="spec"><p class="cap">400 · Regular</p><div class="s" style="font-weight:400;letter-spacing:0">Aa Bb Cc Ññ 0123456789 ¿?¡!</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="app">
+  <div class="wrap">
+    <header><span class="num">06</span><h2>La marca en la app</h2></header>
+    <p class="lead">En el televisor la app es oscura: fondo Pantalla, texto Hueso, y el rojo solo donde algo está pasando o donde está tu foco.</p>
+
+    <figure style="margin-top:32px">
+      <div class="tv" role="img" aria-label="Maqueta de la grilla de canales en el televisor: el canal enfocado tiene un anillo rojo y el canal actual muestra un punto rojo con la palabra Ahora.">
+        <div class="rail"><img src="logo/mark.svg" width="36" height="36" alt=""><i></i><i></i><i></i></div>
+        <div class="main">
+          <h4>Canales</h4>
+          <div class="tiles">
+            <div class="tile now"><span class="tag">Ahora</span><span class="name">Canal 2</span></div>
+            <div class="tile focus"><span class="tag">Ahora</span><span class="name">Canal 5</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Noticias</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Cultura</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Música</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Infantil</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Deportes</span></div>
+            <div class="tile"><span class="tag">Ahora</span><span class="name">Regional</span></div>
+          </div>
+          <div class="bar"><div><div class="t">Canal 2</div><span class="tag live">En vivo</span></div><span class="btn">Seguir viendo</span></div>
+        </div>
+      </div>
+      <figcaption>Foco: anillo rojo de 4 px separado 4 px, más una escala de 1,08 y una superficie más clara. Canal actual: punto rojo y la palabra “Ahora”. En vivo: punto rojo y “En vivo”. El significado nunca depende solo del color: siempre hay una forma o una palabra.</figcaption>
+    </figure>
+
+    <h3>Tokens propuestos</h3>
+    <p>Los valores completos están en <a href="tokens-propuestos.css"><code>tokens-propuestos.css</code></a>, con los mismos nombres que usa hoy la app para poder adoptarlos sin tocar los componentes.</p>
+    <table>
+      <thead><tr><th>Token</th><th>Valor</th><th>Uso</th><th>Contraste medido</th></tr></thead>
+      <tbody>
+        <tr><td><code>--n-0</code></td><td><span class="chip" style="background:#0E0E0E"></span>#0E0E0E</td><td>Fondo (Pantalla)</td><td>Hueso 17,54:1</td></tr>
+        <tr><td><code>--n-1</code></td><td><span class="chip" style="background:#181715"></span>#181715</td><td>Riel lateral, chips</td><td>Hueso 16,28:1</td></tr>
+        <tr><td><code>--n-2</code></td><td><span class="chip" style="background:#22211E"></span>#22211E</td><td>Tarjetas de canal</td><td>Hueso 14,63:1</td></tr>
+        <tr><td><code>--n-3</code></td><td><span class="chip" style="background:#2F2D2A"></span>#2F2D2A</td><td>Superficie con foco, filetes</td><td>Hueso 12,47:1</td></tr>
+        <tr><td><code>--n-4</code></td><td><span class="chip" style="background:#9A978F"></span>#9A978F</td><td>Texto apagado</td><td>5,52:1 en n-2 · 4,71:1 en n-3</td></tr>
+        <tr><td><code>--n-5</code></td><td><span class="chip" style="background:#CFCCC5"></span>#CFCCC5</td><td>Texto secundario</td><td>10,04:1 en n-2</td></tr>
+        <tr><td><code>--n-6</code></td><td><span class="chip" style="background:#F5F4F0"></span>#F5F4F0</td><td>Texto (Hueso)</td><td>12,47:1 en n-3</td></tr>
+        <tr><td><code>--accent</code></td><td><span class="chip" style="background:#E8381E"></span>#E8381E</td><td>Punto, en vivo, canal actual, foco</td><td>4,61:1 en n-0 · 3,28:1 en n-3</td></tr>
+        <tr><td><code>--accent-on</code></td><td><span class="chip" style="background:#111111"></span>#111111</td><td>Texto sobre relleno rojo</td><td>4,51:1</td></tr>
+        <tr><td><code>--focus-ring</code></td><td>4px solid --accent</td><td>Foco del control remoto</td><td>3,28:1 o más contra toda superficie</td></tr>
+        <tr><td><code>--danger-fg</code></td><td><span class="chip" style="background:#FF9A85"></span>#FF9A85</td><td>Errores, con ícono y frase</td><td>8,35:1 en su fondo</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Estados</h3>
+    <table>
+      <thead><tr><th>Estado</th><th>Cómo se ve</th></tr></thead>
+      <tbody>
+        <tr><td>Reposo</td><td>Tarjeta <code>--n-2</code>, nombre en Hueso 800.</td></tr>
+        <tr><td>Foco</td><td>Anillo rojo de 4 px a 4 px de distancia, superficie <code>--n-3</code>, escala 1,08. Sin animación si el sistema pide movimiento reducido.</td></tr>
+        <tr><td>Canal actual</td><td>Punto rojo y “Ahora” arriba a la izquierda de la tarjeta.</td></tr>
+        <tr><td>En vivo</td><td>Punto rojo y “En vivo” junto al nombre del programa o del canal.</td></tr>
+        <tr><td>Deshabilitado</td><td>Texto <code>--n-4</code>, sin foco, con una frase que diga por qué: “Este canal no transmite ahora”.</td></tr>
+        <tr><td>Cargando</td><td>Tarjetas vacías del mismo tamaño en <code>--n-1</code>. Sin ruedita girando en el medio de la pantalla.</td></tr>
+        <tr><td>Error</td><td>Ícono, frase en <code>--danger-fg</code> sobre <code>--danger-bg</code> y una acción: “Probá de nuevo”.</td></tr>
+      </tbody>
+    </table>
+    <p class="cap">El rojo cumple tres funciones (en vivo, canal actual y foco). Por eso cada una lleva su forma: punto con palabra para lo que está pasando, anillo para el foco.</p>
+  </div>
+</section>
+
+<section id="voz">
+  <div class="wrap">
+    <header><span class="num">07</span><h2>Tono de voz</h2></header>
+    <div class="grid2">
+      <div>
+        <p class="lead">Hablamos como alguien que sabe de tele y te alcanza el control: corto, claro y de vos.</p>
+        <ul>
+          <li><strong>Directo.</strong> Verbo primero. La acción es lo que importa.</li>
+          <li><strong>De vos.</strong> Voseo en toda la interfaz: “Buscá”, “Probá”, “Elegí”.</li>
+          <li><strong>Sin tecnicismos.</strong> Nadie necesita leer “stream” ni “buffer” para mirar tele.</li>
+          <li><strong>Sin exclamaciones ni emojis.</strong> La pantalla ya tiene suficiente ruido.</li>
+        </ul>
+      </div>
+      <div>
+        <table class="voice">
+          <thead><tr><th>Texto</th><th>Dónde</th></tr></thead>
+          <tbody>
+            <tr><td>Seguir viendo</td><td>Botón para volver al último canal.</td></tr>
+            <tr><td>Volver a los canales</td><td>Salir del reproductor a la grilla.</td></tr>
+            <tr><td>Buscá un canal</td><td>Campo de búsqueda.</td></tr>
+            <tr><td>En vivo</td><td>Etiqueta con el punto rojo.</td></tr>
+            <tr><td>Ahora</td><td>Canal que estás mirando, en la grilla.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <h3>Así sí, así no</h3>
+    <div class="pair">
+      <div><span class="label">Así sí</span>Buscá un canal</div>
+      <div><span class="label">No</span>Busque su canal favorito aquí</div>
+      <div>Este canal no responde. Probá de nuevo en unos minutos o elegí otro.</div>
+      <div>Error 503: no se pudo cargar el stream.</div>
+      <div>No encontramos canales con “deprotes”. Revisá cómo lo escribiste.</div>
+      <div>¡Ups! No hay resultados</div>
+      <div>Volver a los canales</div>
+      <div>Salir</div>
+    </div>
+  </div>
+</section>
+
+<section id="descargas">
+  <div class="wrap">
+    <header><span class="num">08</span><h2>Descargas</h2></header>
+    <p>Todos los archivos son SVG dibujados a mano: sin fuentes, sin imágenes incrustadas, sin degradados. La geometría sale de <code>source/nodo-geometry.mjs</code>.</p>
+    <ul class="dl">
+      <li><a href="logo/logo.svg" download><span>Logo principal</span><span>logo/logo.svg</span></a></li>
+      <li><a href="logo/logo-on-dark.svg" download><span>Logo sobre oscuro</span><span>logo/logo-on-dark.svg</span></a></li>
+      <li><a href="logo/mono-dark.svg" download><span>Logo un color, oscuro</span><span>logo/mono-dark.svg</span></a></li>
+      <li><a href="logo/mono-light.svg" download><span>Logo un color, claro</span><span>logo/mono-light.svg</span></a></li>
+      <li><a href="logo/mark.svg" download><span>Símbolo</span><span>logo/mark.svg</span></a></li>
+      <li><a href="logo/mark-small.svg" download><span>Símbolo simplificado</span><span>logo/mark-small.svg</span></a></li>
+      <li><a href="favicon.svg" download><span>Favicon</span><span>favicon.svg</span></a></li>
+      <li><a href="android/tv-banner.svg" download><span>Banner Android TV 320 × 180</span><span>android/tv-banner.svg</span></a></li>
+      <li><a href="android/app-icon.svg" download><span>Ícono de la app 432 × 432</span><span>android/app-icon.svg</span></a></li>
+      <li><a href="android/app-icon-foreground.svg" download><span>Ícono adaptable, frente</span><span>android/app-icon-foreground.svg</span></a></li>
+      <li><a href="android/app-icon-background.svg" download><span>Ícono adaptable, fondo</span><span>android/app-icon-background.svg</span></a></li>
+      <li><a href="tokens-propuestos.css" download><span>Tokens de interfaz</span><span>tokens-propuestos.css</span></a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">nodo. · Manual de marca, versión 1 · Noviembre 2026</div>
+</footer>
+</body>
+</html>

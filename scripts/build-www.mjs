@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const out = join(root, 'www');
-const entries = ['index.html', 'src', 'styles'];
+const entries = ['index.html', 'assets', 'src', 'styles'];
 
 await rm(out, { recursive: true, force: true });
 for (const entry of entries) {
