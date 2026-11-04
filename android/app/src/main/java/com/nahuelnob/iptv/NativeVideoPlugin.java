@@ -2,6 +2,7 @@ package com.nahuelnob.iptv;
 
 import android.graphics.Color;
 import android.net.Uri;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -19,7 +20,6 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
-import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 
 import com.getcapacitor.JSObject;
@@ -35,9 +35,14 @@ import java.util.Locale;
  * player's controls stay on top while the device's own decoders handle the video. The WebView's
  * MediaSource path cannot decode MPEG-2 at all, and hls.js drops HEVC carried in MPEG-TS.
  *
+ * play({ url, id, surface }): surface is "texture" (default, works on every device) or "surface"
+ * (cheaper, but black on TV boxes whose compositor hides a SurfaceView under the WebView). The page
+ * chooses, so switching needs only a web deploy.
+ *
  * Events, each carrying the {@code id} given to {@link #play}, so the page can ignore a stream it
- * already left: "buffering", "playing", "tracks" ({@code video}: a decodable video track exists)
- * and "error" ({@code status}: HTTP status when the server answered with one).
+ * already left: "buffering", "playing", "tracks" ({@code video}: a decodable video track exists),
+ * "firstFrame" (a video frame reached the view) and "error" ({@code status}: HTTP status when the
+ * server answered with one).
  */
 @CapacitorPlugin(name = "NativeVideo")
 @OptIn(markerClass = UnstableApi.class)
@@ -51,6 +56,7 @@ public class NativeVideoPlugin extends Plugin {
 
     private ExoPlayer player;
     private PlayerView view;
+    private String viewSurface;
     private String url;
     private int id;
     private boolean forcedHls;
@@ -65,9 +71,11 @@ public class NativeVideoPlugin extends Plugin {
             return;
         }
         int requestedId = call.getInt("id", 0);
+        String surface = "surface".equals(call.getString("surface")) ? "surface" : "texture";
 
         getActivity().runOnUiThread(() -> {
             ensurePlayer();
+            ensureView(surface);
             url = requested;
             id = requestedId;
             forcedHls = false;
@@ -124,22 +132,28 @@ public class NativeVideoPlugin extends Plugin {
             .build();
         player.addListener(listener);
 
-        view = new PlayerView(getContext());
-        view.setUseController(false);
-        view.setFocusable(false);
-        view.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-        view.setShutterBackgroundColor(Color.BLACK);
-        view.setBackgroundColor(Color.BLACK);
-        view.setPlayer(player);
-        view.setVisibility(View.GONE);
+        // The WebView turns transparent so the video shows through wherever the page paints
+        // nothing; the page decides that with its data-native-video state.
+        getBridge().getWebView().setBackgroundColor(Color.TRANSPARENT);
+    }
 
-        // Index 0: under the WebView. The WebView turns transparent so the video shows through
-        // wherever the page paints nothing; the page decides that with its data-native-video state.
+    // One PlayerView at a time, of the requested surface type, at index 0: under the WebView.
+    private void ensureView(String surface) {
+        if (view != null && surface.equals(viewSurface)) return;
+
         WebView webView = getBridge().getWebView();
         ViewGroup parent = (ViewGroup) webView.getParent();
-        parent.addView(view, 0, new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        webView.setBackgroundColor(Color.TRANSPARENT);
+        if (view != null) {
+            view.setPlayer(null);
+            parent.removeView(view);
+        }
+
+        int layout = "surface".equals(surface) ? R.layout.native_video_surface : R.layout.native_video_texture;
+        view = (PlayerView) LayoutInflater.from(getContext()).inflate(layout, parent, false);
+        view.setPlayer(player);
+        view.setVisibility(View.GONE);
+        parent.addView(view, 0);
+        viewSurface = surface;
     }
 
     private void load(boolean asHls) {
@@ -171,6 +185,11 @@ public class NativeVideoPlugin extends Plugin {
             if (!isPlaying) return;
             rejoins = 0;
             emit("playing", new JSObject());
+        }
+
+        @Override
+        public void onRenderedFirstFrame() {
+            if (url != null) emit("firstFrame", new JSObject());
         }
 
         @Override
