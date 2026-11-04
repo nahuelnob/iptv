@@ -10,6 +10,9 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.exoplayer.DecoderReuseEvaluation;
+import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
@@ -131,6 +134,7 @@ public class NativeVideoPlugin extends Plugin {
             .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
             .build();
         player.addListener(listener);
+        player.addAnalyticsListener(diagnostics);
 
         // The WebView turns transparent so the video shows through wherever the page paints
         // nothing; the page decides that with its data-native-video state.
@@ -231,6 +235,41 @@ public class NativeVideoPlugin extends Plugin {
             data.put("message", error.getErrorCodeName());
             if (status != null) data.put("status", status);
             emit("error", data);
+        }
+    };
+
+    // Diagnostics for "sound but no picture" on TV boxes: which decoder runs, the stream's real
+    // format, and how many frames are dropped (late frames are discarded while the audio goes on).
+    private final AnalyticsListener diagnostics = new AnalyticsListener() {
+        @Override
+        public void onVideoDecoderInitialized(
+            @NonNull EventTime eventTime, @NonNull String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+            if (url == null) return;
+            JSObject data = new JSObject();
+            data.put("decoder", decoderName);
+            emit("decoder", data);
+        }
+
+        @Override
+        public void onVideoInputFormatChanged(
+            @NonNull EventTime eventTime, @NonNull Format format, DecoderReuseEvaluation decoderReuseEvaluation) {
+            if (url == null) return;
+            JSObject data = new JSObject();
+            data.put("width", format.width);
+            data.put("height", format.height);
+            data.put("frameRate", format.frameRate);
+            data.put("codecs", format.codecs);
+            data.put("mime", format.sampleMimeType);
+            emit("format", data);
+        }
+
+        @Override
+        public void onDroppedVideoFrames(@NonNull EventTime eventTime, int droppedFrames, long elapsedMs) {
+            if (url == null) return;
+            JSObject data = new JSObject();
+            data.put("count", droppedFrames);
+            data.put("elapsedMs", elapsedMs);
+            emit("dropped", data);
         }
     };
 
