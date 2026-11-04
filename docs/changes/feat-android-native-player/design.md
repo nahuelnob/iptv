@@ -46,3 +46,21 @@ seguidas. El contador vuelve a cero cuando la reproducción se reanuda.
 
 **Consecuencias:** un stream que se cae y vuelve una y otra vez se reengancha sin
 límite, siempre que reproduzca entre una caída y la siguiente.
+
+## Listas con `CapacitorHttp.get` explícito en Android
+
+**Contexto:** en Android, las listas `http://` o sin CORS cargaban a través del
+Worker de Cloudflare. Muchos proveedores rechazan las IPs de datacenters, y el
+Worker no alcanza direcciones privadas.
+
+**Decisión:** `loadFromUrl` llama a `CapacitorHttp.get` con `connectTimeout` y
+`readTimeout` de 15 s cuando la app corre en Android. En el navegador no cambia nada.
+
+**Alternativas descartadas:**
+
+- Activar `CapacitorHttp.enabled` para que reemplace el `fetch` global: ese `fetch`
+  ignora `AbortSignal`, así que se perderían los timeouts. Además cambiaría todos los
+  `fetch` de la app, no solo la carga de listas.
+
+**Consecuencias:** la carga de listas en Android no depende del Worker. El Worker
+sigue siendo necesario para la versión web.
