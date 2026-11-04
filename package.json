@@ -1,6 +1,6 @@
 {
   "name": "iptv-player",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Web IPTV player for M3U playlists, built for keyboard and TV remote navigation.",
@@ -8,7 +8,8 @@
     "start": "node scripts/serve.mjs",
     "test": "node --test",
     "build:www": "node scripts/build-www.mjs",
-    "android:sync": "npm run build:www && cap sync android"
+    "android:sync": "npm run build:www && cap sync android",
+    "release:android": "node scripts/release-android.mjs"
   },
   "engines": {
     "node": ">=20.11"

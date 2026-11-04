@@ -2,6 +2,10 @@
   "appId": "com.nahuelnob.iptv",
   "appName": "Nodo",
   "webDir": "www",
+  "server": {
+    "url": "https://nahuelnob.github.io/iptv/",
+    "errorPath": "offline.html"
+  },
   "android": {
     "allowMixedContent": true
   }

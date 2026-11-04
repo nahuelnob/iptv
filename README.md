@@ -41,7 +41,34 @@ YouTube channels play through YouTube's official embed. Channels listed by name
 | `src/ui/section-nav.js` | Side rail, breadcrumb and the menu/categories drawer. |
 | `src/ui/tiles.js` | Channel tiles of the mosaic (presentational). |
 | `src/ui/player.js` | Full-screen player: hls.js, native HLS fallback, YouTube embed, ▲ ▼ zapping. |
+| `src/domain/app-version.js` | Release tag → Android version code, and whether a release is newer. |
+| `src/infra/app-update.js` | Android app: asks GitHub for the latest release and installs it. |
+| `src/ui/update-prompt.js` | Android app: the "new version" dialog. |
 | `src/main.js` | Wires everything together. |
+
+## Android TV app
+
+The APK is a shell around the site GitHub Pages publishes from `main`
+(`capacitor.config.json` → `server.url`), plus native plugins: ExoPlayer playback (`NativeVideoPlugin`)
+and in-app updates (`AppUpdatePlugin`). Without internet it shows the bundled `offline.html`.
+
+Install it once (Downloader, or any browser on the TV) from the latest release:
+`https://github.com/nahuelnob/iptv/releases/latest/download/nodo.apk`
+
+After that:
+
+- **Web changes** (`index.html`, `src/`, `styles/`): push to `main`. The TV picks them up the next
+  time the app starts, once Pages has published (GitHub Pages caches for up to ~10 minutes).
+- **Native changes** (`android/`, Capacitor plugins or config): bump `version` in `package.json`,
+  commit and push `main`, then run `npm run release:android -- --notes "What changed"`. It builds
+  the signed APK and publishes the `v<version>` GitHub release. On its next start the app offers the
+  update; the user confirms it in Android's installer (the first time, Android also asks to allow
+  Nodo to install apps).
+
+Releases are signed with the release key: `android/keystore.properties` (gitignored) points at the
+keystore outside the repo. **Back up both.** Android only installs an update signed with the same
+key, so without them the app has to be uninstalled and installed again. `--dry-run` builds the APK
+into `dist/` without publishing.
 
 ## Known browser limits
 

@@ -12,6 +12,8 @@ import { createBackGuard } from './ui/back-stack.js';
 import { isBack } from './ui/keys.js';
 import { enableSpatialNav, focusElement, isVisible } from './ui/spatial-nav.js';
 import { connectNativeBack } from './infra/native-back.js';
+import { checkForUpdate } from './infra/app-update.js';
+import { createUpdatePrompt } from './ui/update-prompt.js';
 
 const $ = (selector) => document.querySelector(selector);
 const views = {
@@ -50,6 +52,7 @@ let staleBehindPlayer = false; // the library changed while watching: re-render 
 let lastContentFocus = null;
 let loadToken = 0;
 const HOLD_MS = 600; // OK held this long on a tile toggles the favorite (PLAN section 3)
+const UPDATE_CHECK_DELAY_MS = 4000;
 let hold = null;
 
 const nav = createSectionNav();
@@ -60,6 +63,7 @@ const player = createPlayer($('[data-player]'), {
   onClose: afterPlayer,
   numberOf: (channel) => String(state.indexOf.get(channel) + 1),
 });
+const updatePrompt = createUpdatePrompt($('[data-update]'), { onChange: () => guard.sync() });
 const guard = createBackGuard({
   hasWork: () => Boolean(backAction()),
   onBack: () => backAction()?.(),
@@ -281,6 +285,7 @@ function onEdge(from, direction) {
 
 // Back, in order: open drawer → header back to the grid → section back to Inicio → category back to Todos.
 function backAction() {
+  if (updatePrompt.isOpen()) return updatePrompt.close;
   if (player.isOpen()) return null;
   if (nav.isOpen()) return () => nav.close(true);
   const inHeader = document.activeElement?.closest('[data-zone="top"]');
@@ -534,3 +539,9 @@ else {
   render();
   focusDefault();
 }
+
+// Android app: offer a newer APK once the list is up. Never interrupts a channel being watched.
+setTimeout(async () => {
+  const update = await checkForUpdate();
+  if (update && !player.isOpen()) updatePrompt.open(update);
+}, UPDATE_CHECK_DELAY_MS);
