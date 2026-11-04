@@ -74,7 +74,9 @@
 
   <div class="player" data-player data-nav-scope hidden role="dialog" aria-modal="true" aria-labelledby="player-title">
     <!-- No native controls: live TV driven by the D-pad; the title and strip are the controls. -->
-    <video class="player__video" playsinline></video>
+    <!-- The transparent poster stops Android's WebView from drawing its gray play icon on an empty video. -->
+    <video class="player__video" playsinline
+           poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
     <!-- tabindex -1 keeps focus (and the Back key) in this page instead of inside YouTube's frame. -->
     <iframe class="player__video" data-player-embed hidden tabindex="-1" title="Reproductor de YouTube"
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"

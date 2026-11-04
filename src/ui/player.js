@@ -6,6 +6,7 @@ import { neighborChannel, neighborWindow } from '../domain/zapping.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
+import { nativeVideo } from '../infra/native-video.js';
 
 const ZAP_DELAY_MS = 400;
 const IDLE_MS = 4000;
@@ -50,6 +51,34 @@ export function createPlayer(root, {
   let fullscreenOwned = false;
   let focusAfterClose = null;
   let reenterFullscreen = false;
+
+  // Android app only: null in a browser.
+  const native = nativeVideo();
+  let nativeSeq = 0;
+
+  if (native) {
+    // Events carry the id given to play(): late events from a channel already left are ignored.
+    const on = (event, handler) => native.addListener(event, data => {
+      if (current?.native && current.id === data?.id) handler(data, current);
+    });
+
+    on('buffering', (_data, attempt) => {
+      setStatus(attempt.noPicture ? NO_PICTURE : 'Cargando…');
+    });
+
+    on('playing', (_data, attempt) => {
+      setStatus(attempt.noPicture ? NO_PICTURE : null);
+    });
+
+    on('tracks', (data, attempt) => {
+      attempt.noPicture = !data.video;
+      if (attempt.noPicture) setStatus(NO_PICTURE);
+    });
+
+    on('error', data => {
+      fail(describeHttpStatus(data.status) ?? GENERIC_CAUSE);
+    });
+  }
 
   closeButton.addEventListener('click', close);
 
@@ -189,9 +218,33 @@ export function createPlayer(root, {
 
     if (parseYouTubeUrl(target.url)) {
       playYouTube(target.url);
+    } else if (native) {
+      playNative(target.url);
     } else {
       play(target.url);
     }
+  }
+
+  function playNative(url) {
+    teardown();
+
+    const attempt = {
+      url,
+      native: true,
+      id: ++nativeSeq,
+      noPicture: false
+    };
+
+    current = attempt;
+
+    document.documentElement.setAttribute('data-native-video', '');
+    video.hidden = true;
+
+    setStatus(`Conectando con ${channel.name}…`);
+
+    native.play({ url, id: attempt.id }).catch(() => {
+      if (current === attempt) fail(GENERIC_CAUSE);
+    });
   }
 
   function show(target) {
@@ -516,6 +569,11 @@ export function createPlayer(root, {
   // --------------------------------------------------
 
   function teardown() {
+    if (current?.native) {
+      native.stop().catch(() => {});
+      document.documentElement.removeAttribute('data-native-video');
+    }
+
     current = null;
 
     hls?.destroy();
@@ -569,17 +627,8 @@ export function createPlayer(root, {
 
   function describeHlsError(data) {
     if (data.type === 'networkError') {
-      const code = data.response?.code;
-
-      if (code === 403) {
-        return 'El servidor rechazó el pedido (403): la señal está restringida a ciertas conexiones o regiones.';
-      }
-
-      if (code >= 400) {
-        return `El servidor respondió con el error ${code}.`;
-      }
-
-      return 'La señal no responde o el servidor no permite la reproducción desde el navegador.';
+      return describeHttpStatus(data.response?.code) ??
+        'La señal no responde o el servidor no permite la reproducción desde el navegador.';
     }
 
     if (data.type === 'mediaError') {
@@ -587,6 +636,18 @@ export function createPlayer(root, {
     }
 
     return GENERIC_CAUSE;
+  }
+
+  function describeHttpStatus(status) {
+    if (status === 403) {
+      return 'El servidor rechazó el pedido (403): la señal está restringida a ciertas conexiones o regiones.';
+    }
+
+    if (status >= 400) {
+      return `El servidor respondió con el error ${status}.`;
+    }
+
+    return null;
   }
 
   // --------------------------------------------------
