@@ -1,0 +1,48 @@
+# Publishes the site GitHub Pages serves (and the Android app loads) from a build of main.
+# The build (scripts/build-web.mjs) lowers the code for old Android TV WebViews (Chrome 66);
+# the raw source only runs in current browsers.
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a queued run still deploys the newest commit, so never cancel the live one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:web
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  # Only this job can publish: the build (and its npm dependencies) never holds Pages rights.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

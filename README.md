@@ -9,6 +9,11 @@ npm start   # http://localhost:5173
 npm test    # domain tests (node:test, no dependencies)
 ```
 
+`npm start` serves the source as-is, which needs a current browser. The published site is a build
+(`npm run build:web` → `site/`, served with `npm run serve:site`): esbuild lowers the JavaScript
+and CSS for old Android TV WebViews (Chrome 66), `src/polyfills.js` covers the missing APIs, and
+the "Old TV WebViews" block at the end of `styles/app.css` covers what cannot be lowered.
+
 Open **Lista** and paste a playlist URL or open an `.m3u` file; the last URL that worked loads on start.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
 
@@ -57,8 +62,9 @@ Install it once (Downloader, or any browser on the TV) from the latest release:
 
 After that:
 
-- **Web changes** (`index.html`, `src/`, `styles/`): push to `main`. The TV picks them up the next
-  time the app starts, once Pages has published (GitHub Pages caches for up to ~10 minutes).
+- **Web changes** (`index.html`, `src/`, `styles/`): push to `main`. The Pages workflow
+  (`.github/workflows/pages.yml`) runs the tests, builds the site and publishes it; the TV picks it
+  up the next time the app starts (GitHub Pages caches for up to ~10 minutes).
 - **Native changes** (`android/`, Capacitor plugins or config): bump `version` in `package.json`,
   commit and push `main`, then run `npm run release:android -- --notes "What changed"`. It builds
   the signed APK and publishes the `v<version>` GitHub release. On its next start the app offers the
