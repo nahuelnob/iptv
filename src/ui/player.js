@@ -671,6 +671,11 @@ export function createPlayer(root, {
   // --------------------------------------------------
 
   function enterFullscreen() {
+    // The Android app already fills the screen, and element fullscreen there opens a native
+    // "custom view": old TV WebViews (Chrome 66) crash their renderer on it, leaving a blank page
+    // over the native video while the audio goes on, and newer ones cover the video with it.
+    if (native) return;
+
     const request =
       root.requestFullscreen ??
       root.webkitRequestFullscreen;
