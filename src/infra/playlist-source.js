@@ -14,6 +14,11 @@ const CLOUDFLARE_PROXY =
 export async function loadFromUrl(url) {
   const host = hostOf(url);
 
+  // Android app: Capacitor's native HTTP client is not subject to CORS or mixed content, and the
+  // request leaves from the device itself, so provider lists that refuse datacenter IPs still load.
+  const nativeHttp = nativeHttpClient();
+  if (nativeHttp) return loadNatively(nativeHttp, url, host);
+
   const routes = [];
 
   if (!url.startsWith('http://')) {
@@ -62,6 +67,37 @@ export async function loadFromUrl(url) {
   }
 
   throw connectError(host);
+}
+
+// Called explicitly instead of enabling Capacitor's fetch patch: the patched fetch ignores
+// AbortSignal, so the 15-second timeout would be lost.
+async function loadNatively(http, url, host) {
+  let response;
+
+  try {
+    response = await http.get({
+      url,
+      responseType: 'text',
+      connectTimeout: TIMEOUT_MS,
+      readTimeout: TIMEOUT_MS,
+    });
+  } catch (error) {
+    throw error?.code === 'SocketTimeoutException' ? timeoutError(host) : connectError(host);
+  }
+
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(
+      `${host} respondió con el error ${response.status}. Revisá la dirección y volvé a intentar.`
+    );
+  }
+
+  return String(response.data ?? '');
+}
+
+function nativeHttpClient() {
+  const capacitor = globalThis.window?.Capacitor;
+  if (!capacitor?.isNativePlatform?.()) return null;
+  return capacitor.Plugins?.CapacitorHttp ?? null;
 }
 
 export function loadFromFile(file) {
