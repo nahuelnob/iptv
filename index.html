@@ -128,6 +128,11 @@
       <button class="button" type="button" data-nav data-player-unmute hidden>Activar sonido</button>
       <button class="button" type="button" data-nav data-player-close>Volver</button>
     </div>
+    <!-- Developer options only: what the device does with the channel (src/ui/diagnostics-panel.js). -->
+    <aside class="diag" data-diag aria-label="Diagnóstico de video" hidden>
+      <dl class="diag__list" data-diag-list></dl>
+      <button class="button diag__surface" type="button" data-nav data-diag-surface hidden></button>
+    </aside>
   </div>
 
   <!-- Android app only: offered when a newer APK is published (src/ui/update-prompt.js). -->

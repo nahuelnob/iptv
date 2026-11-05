@@ -292,6 +292,19 @@ html[data-native-video] .player__video { display: none; }
 .strip__hint kbd { padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--n-3); color: var(--n-6); font: inherit; }
 .player__actions { position: absolute; right: var(--safe-x); bottom: var(--safe-y); display: flex; gap: var(--space-3); }
 .player__actions .button { white-space: nowrap; }
+/* App: developer diagnostics, top right. It does not fade with the controls, so a photo of the TV
+   shows it next to whatever the video is doing. */
+.diag {
+  position: absolute; top: calc(var(--safe-y) + 4.5rem); right: var(--safe-x); z-index: 1;
+  width: 22rem; max-width: calc(100% - 2 * var(--safe-x)); box-sizing: border-box;
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm);
+  background: var(--overlay-pill); box-shadow: inset 4px 0 0 var(--warning-fg);
+  font-size: var(--text-sm); line-height: var(--leading-ui);
+}
+.diag__list { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px var(--space-3); margin: 0 0 var(--space-3); }
+.diag__list dt { color: var(--n-4); }
+.diag__list dd { margin: 0; color: var(--n-6); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.diag__surface { width: 100%; }
 
 @media (max-width: 720px) {
   .info__name { font-size: var(--text-2xl); }

@@ -8,6 +8,9 @@ import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
 import { nativeVideo } from '../infra/native-video.js';
+import { savedSurface, saveSurface } from '../infra/video-surface-store.js';
+import { nextSurface } from '../domain/diagnostics.js';
+import { createDiagnosticsPanel } from './diagnostics-panel.js';
 
 const ZAP_DELAY_MS = 400;
 // Rows of the channel column: as many as fit (measured after the first render), three on phones,
@@ -31,6 +34,8 @@ export function createPlayer(root, {
   onWatch = () => {},
   onClose = () => {},
   numberOf = () => '',
+  // Developer options: the diagnostics panel shows only while they are on.
+  isDevMode = () => false,
 } = {}) {
 
   const video = root.querySelector('video');
@@ -72,11 +77,17 @@ export function createPlayer(root, {
   const native = nativeVideo();
   let nativeSeq = 0;
 
+  const diag = createDiagnosticsPanel(root, { onSwitchSurface: switchSurface });
+
   if (native) {
     // Events carry the id given to play(): late events from a channel already left are ignored.
     const on = (event, handler) => native.addListener(event, data => {
       if (current?.native && current.id === data?.id) handler(data, current);
     });
+
+    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error']) {
+      on(name, data => diag.event(name, data));
+    }
 
     on('buffering', (_data, attempt) => {
       setStatus(attempt.noPicture ? NO_PICTURE : 'Cargando…');
@@ -196,6 +207,7 @@ export function createPlayer(root, {
 
   // An audio-only attempt keeps its notice instead of the usual loading/playing statuses.
   video.addEventListener('playing', () => {
+    if (current) diag.event('playing');
     if (current) session = markPlaying(session, Date.now());
     setStatus(current?.noPicture ? NO_PICTURE : null);
   });
@@ -232,6 +244,7 @@ export function createPlayer(root, {
     show(selected);
     focusCursor();
     wake();
+    diag.setVisible(isDevMode());
     start(selected);
   }
 
@@ -404,9 +417,20 @@ export function createPlayer(root, {
 
     setStatus(`Conectando con ${channel.name}…`);
 
-    native.play({ url, id: attempt.id }).catch(() => {
+    // The surface chosen for this device in the diagnostics panel (TextureView unless changed).
+    const surface = savedSurface();
+    diag.start({ native: true, surface });
+
+    native.play({ url, id: attempt.id, surface }).catch(() => {
       if (current === attempt) fail(GENERIC_CAUSE);
     });
+  }
+
+  // Diagnostics panel: try the other surface and restart the channel on it. The choice stays on
+  // this device, with the developer options on or off.
+  function switchSurface() {
+    saveSurface(nextSurface(savedSurface()));
+    if (native && channel) playNative(channel.url);
   }
 
   function show(target) {
@@ -488,6 +512,7 @@ export function createPlayer(root, {
 
   function play(url, { viaProxy = false } = {}) {
     teardown();
+    diag.start({ native: false });
 
     // Siempre conservar la dirección original.
     let originUrl = url;

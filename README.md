@@ -17,8 +17,11 @@ the "Old TV WebViews" block at the end of `styles/app.css` covers what cannot be
 The app opens on the owner's own list (`playlists/mi-lista.m3u`, below) and has no way to change it
 in sight. Changing the list is a developer option: in the side menu, while on Inicio, press OK seven
 times in a row on **Inicio** (from the fourth press a notice counts down). That brings back **Lista**,
-where you paste a playlist URL or open an `.m3u` file, and the last URL that worked then loads on start.
-The same gesture hides Lista again and goes back to the own list.
+where you paste a playlist URL or open an `.m3u` file to try another list until the app restarts: it
+always starts on the own list. With the options on, the player also shows a video diagnostics panel
+(app and Android version, decoder, format, first-frame time, dropped frames) and a button to try the
+other video surface (TextureView or SurfaceView), which stays chosen on that device. The same gesture
+hides Lista and the panel again and goes back to the own list.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
 
 Remote / keyboard: arrows move, OK (Enter) plays, ◀ from the first column opens the menu and categories,

@@ -76,6 +76,7 @@ const player = createPlayer($('[data-player]'), {
   onWatch,
   onClose: afterPlayer,
   numberOf: (channel) => String(state.indexOf.get(channel) + 1),
+  isDevMode: () => devMode,
 });
 const updatePrompt = createUpdatePrompt($('[data-update]'), { onChange: () => guard.sync() });
 const guard = createBackGuard({
@@ -612,9 +613,10 @@ function el(tag, props, ...children) {
 tick();
 setInterval(tick, 15000);
 applyDevMode();
-// Open on the own list, so a channel is one move and OK away (PLAN section 1). With the developer
-// options on, the last list that worked wins, as before.
-loadUrl((devMode && lastUrl()) || ownPlaylistUrl());
+// Open on the own list, so a channel is one move and OK away (PLAN section 1). Always: the developer
+// options only bring back Lista to try another list until the app restarts, so a TV never stays on
+// a test list (the owner's TV did, after the options were left on).
+loadUrl(ownPlaylistUrl());
 
 // Android app: offer a newer APK once the list is up. Never interrupts a channel being watched.
 setTimeout(async () => {
