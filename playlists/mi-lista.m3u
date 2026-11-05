@@ -269,3 +269,205 @@ http://181.78.79.131:8000/play/a0mw
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0sz
+#EXTINF:0 group-title="Entretenimiento",AE Mundo
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0t2
+#EXTINF:0 group-title="Cine",AMC HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0n2
+#EXTINF:0 group-title="General",America TV PY
+#EXTGRP:General
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0ss
+#EXTINF:0 group-title="Infantiles",Cartoon Network HD
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0oz
+#EXTINF:0 group-title="Infantiles",Discovery Kids HD
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0p0
+#EXTINF:-1 group-title="Infantiles",Disney Channel
+#EXTGRP:Infantiles
+http://190.60.52.28:5001/play/a0d1/index.m3u8
+#EXTINF:-1 group-title="Infantiles",Disney HD
+#EXTGRP:Infantiles
+http://190.60.52.28:5001/play/a0aq/index.m3u8
+#EXTINF:0 group-title="General",El Gourmet HD
+#EXTGRP:General
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0mv
+#EXTINF:0 group-title="Cine",FX HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0q5
+#EXTINF:0 group-title="General",Food Network
+#EXTGRP:General
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0qt
+#EXTINF:0 group-title="Cine",HBO
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0qd
+#EXTINF:0 group-title="Documentales",Home & Health HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0p2
+#EXTINF:0 group-title="Infantiles",Nick Jr.
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0p9
+#EXTINF:0 group-title="Cine",Sony HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0py
+#EXTINF:0 group-title="Cine",Sony Movies
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0p5
+#EXTINF:0 group-title="Infantiles",Tooncast
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0pe
+#EXTINF:0 group-title="Deportes",TyC
+#EXTGRP:Deportes
+#EXTVLCOPT:network-caching=1000
+http://181.78.79.131:8000/play/a0t1
+#EXTINF:0 group-title="Deportes",Disney 2 (EnvivosLatam)
+#EXTGRP:Deportes
+#EXTVLCOPT:network-caching=1000
+https://yce5o.envivoslatam.org/disney2/tracks-v1a1/mono.m3u8?ip=181.163.94.50&token=7e611ad84c777f1a659943e1ff6031115a51cd5f-f8-1773306886-1773252886
+#EXTINF:0 group-title="Deportes",Disney 3 (EnvivosLatam)
+#EXTGRP:Deportes
+#EXTVLCOPT:network-caching=1000
+https://wf6kt.envivoslatam.org/disney3/tracks-v1a1/mono.m3u8?ip=181.163.94.50&token=0f75bc004e896b18a3fbf21cfb576f48be430410-3d-1773307511-1773253511
+#EXTINF:0 group-title="Deportes",Disney 4 (EnvivosLatam)
+#EXTGRP:Deportes
+#EXTVLCOPT:network-caching=1000
+https://qbk4f.envivoslatam.org/disney4/tracks-v1a1/mono.m3u8?ip=181.163.94.50&token=fa5d584815d7279798e3c7ae64501225b477ae5e-d4-1773307613-1773253613
+#EXTINF:0 group-title="Cine",Xtrema Drama
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+https://stmv1.cnarlatam.com/cinedrama/cinedrama/playlist.m3u8
+#EXTINF:0 group-title="Cine",Xtrema Suspenso
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+https://stmv1.cnarlatam.com/cinesuspenso/cinesuspenso/playlist.m3u8
+#EXTINF:0 group-title="Cine",Xtrema Comedia
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+https://stmv1.cnarlatam.com/cinecomedia/cinecomedia/playlist.m3u8
+#EXTINF:0 group-title="Cine",Xtrema Familia
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+https://stmv1.cnarlatam.com/cinefamiliy/cinefamiliy/playlist.m3u8
+#EXTINF:0 group-title="Cine",Cine.Ar
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+https://5fb24b460df87.streamlock.net/live-cont.ar/cinear/playlist.m3u8
+#EXTINF:0 group-title="Deportes",FOX Sports 3 HD
+#EXTGRP:Deportes
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01v/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",FOX HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01p/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",FOX Comedy HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01n/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",FOX Life
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01q/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",FX Peliculas HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01x/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",TNT HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a033/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",TNT Series HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a034/index.m3u8
+#EXTINF:0 group-title="Entretenimiento",Paramount HD
+#EXTGRP:Entretenimiento
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a02m/index.m3u8
+#EXTINF:0 group-title="Cine",HBO 2 HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a025/index.m3u8
+#EXTINF:0 group-title="Cine",HBO Plus HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a023/index.m3u8
+#EXTINF:0 group-title="Cine",HBO Family HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a021/index.m3u8
+#EXTINF:0 group-title="Cine",Cinemax
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a00u/index.m3u8
+#EXTINF:0 group-title="Cine",TCM
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a02y/index.m3u8
+#EXTINF:0 group-title="Cine",FOX Movies HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01s/index.m3u8
+#EXTINF:0 group-title="Cine",Fox Classic HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01m/index.m3u8
+#EXTINF:0 group-title="Cine",Discovery Theater HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a015/index.m3u8
+#EXTINF:0 group-title="Cine",Cine Arte HD
+#EXTGRP:Cine
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a057/index.m3u8
+#EXTINF:0 group-title="Documentales",National Geographic HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a02i/index.m3u8
+#EXTINF:0 group-title="Documentales",Nat Geo Wild HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a02g/index.m3u8
+#EXTINF:0 group-title="Documentales",Historia HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a026/index.m3u8
+#EXTINF:0 group-title="Documentales",Discovery Channel HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a010/index.m3u8
+#EXTINF:0 group-title="Documentales",Discovery ID HD
+#EXTGRP:Documentales
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a013/index.m3u8
+#EXTINF:0 group-title="Infantiles",Disney XD
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a01a/index.m3u8
+#EXTINF:0 group-title="Infantiles",Baby TV
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a00l/index.m3u8
+#EXTINF:0 group-title="Infantiles",Boomerang
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a00n/index.m3u8
+#EXTINF:0 group-title="Infantiles",Nat Geo Kids
+#EXTGRP:Infantiles
+#EXTVLCOPT:network-caching=1000
+http://168.232.168.242:4000/play/a02h/index.m3u8
