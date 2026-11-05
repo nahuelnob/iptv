@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { neighborChannel, neighborWindow } from '../src/domain/zapping.js';
+import { neighborChannel, neighborWindow, windowAround } from '../src/domain/zapping.js';
 
 const list = ['A', 'B', 'C', 'D', 'E', 'F'].map((name, i) => ({ id: `ch-${i}`, name, url: `https://a.example/${name}` }));
 const names = (channels) => channels.map((c) => c.name);
@@ -22,4 +22,13 @@ test('the strip shows up to two channels on each side of the current one, never 
   assert.deepEqual(names(neighborWindow(list.slice(0, 3), list[1])), ['A', 'B', 'C']);
   assert.deepEqual(names(neighborWindow([list[2]], list[2])), ['C']);
   assert.deepEqual(names(neighborWindow([], list[2])), ['C']);
+});
+
+test('the channel column shows as many channels as fit, centered on the cursor, extra one below', () => {
+  assert.deepEqual(names(windowAround(list, list[2], 5)), ['A', 'B', 'C', 'D', 'E']);
+  assert.deepEqual(names(windowAround(list, list[2], 4)), ['B', 'C', 'D', 'E'], 'an even count puts the extra channel below');
+  assert.deepEqual(names(windowAround(list, list[0], 3)), ['F', 'A', 'B'], 'the list is circular');
+  assert.deepEqual(names(windowAround(list, list[1], 20)), ['F', 'A', 'B', 'C', 'D', 'E'], 'a short list shows each channel once');
+  assert.deepEqual(names(windowAround(list, list[1], 1)), ['B']);
+  assert.deepEqual(names(windowAround([], list[2], 9)), ['C']);
 });

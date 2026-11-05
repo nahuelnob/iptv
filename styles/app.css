@@ -215,13 +215,17 @@ html[data-native-video], html[data-native-video] body { background: transparent;
 html[data-native-video] body { visibility: hidden; }
 html[data-native-video] .player { visibility: visible; background: transparent; }
 html[data-native-video] .player__video { display: none; }
+/* App: the channel column sits on the left; the title, notices and actions move beside it. */
+.player { --column-w: 23rem; }
 .player__title {
-  position: absolute; top: var(--safe-y); left: var(--safe-x); margin: 0;
+  position: absolute; top: var(--safe-y); left: calc(var(--safe-x) + var(--column-w) + var(--space-5)); margin: 0;
+  max-width: calc(100% - var(--column-w) - 2 * var(--safe-x) - var(--space-5)); box-sizing: border-box;
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-1) var(--space-1) var(--space-1) var(--space-5); border-radius: 999px;
   background: var(--overlay-pill); font-size: var(--text-lg); font-weight: var(--weight-heading);
 }
-.player__title span { color: var(--n-5); font-weight: var(--weight-text); }
+.player__title span { flex: none; color: var(--n-5); font-weight: var(--weight-text); }
+.player__title b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* App (owner request): the favorite toggle is a compact star in the title pill, not a strip button. */
 .star {
   display: grid; place-items: center; flex: none; width: 48px; height: 48px;
@@ -233,36 +237,62 @@ html[data-native-video] .player__video { display: none; }
 .star:hover { background: var(--n-2); }
 .star:focus { outline: var(--focus-ring); outline-offset: 2px; }
 /* App: notices stack, so a warning and the connection status can show together. */
-.player__notices { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: var(--safe-x); display: grid; justify-items: start; gap: var(--space-2); max-width: 34rem; }
+.player__notices { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: calc(var(--safe-x) + var(--column-w) + var(--space-5)); display: grid; justify-items: start; gap: var(--space-2); max-width: 34rem; }
 .player__notice { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-fg); }
 .player__status { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--overlay-pill); color: var(--n-5); }
 .player__status--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); color: var(--danger-fg); }
+/* App (owner request): a vertical column, so ▲ ▼ move the way the list is drawn. The channel on screen
+   is the inverted row; the cursor carries the focus ring and an OK chip until OK switches to it. */
 .strip {
-  position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y);
-  display: flex; align-items: center; gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
+  position: absolute; top: var(--safe-y); bottom: var(--safe-y); left: var(--safe-x);
+  display: flex; flex-direction: column; gap: var(--space-2);
+  width: var(--column-w); box-sizing: border-box; padding: var(--space-4);
   border-radius: var(--radius-lg); background: var(--overlay-strip);
   box-shadow: var(--elevation-overlay);
   transition: transform var(--dur-large) var(--ease-entry), opacity var(--dur-standard) var(--ease-entry);
 }
-.player__title, .player__notices { transition: opacity var(--dur-standard) var(--ease-entry); }
-/* Idle while playing: title, notices and strip fade out; any key or pointer move brings them back. */
+.player__title, .player__notices, .player__actions { transition: opacity var(--dur-standard) var(--ease-entry); }
+/* Idle while playing: title, notices, column and actions fade out; any key or pointer move brings them back. */
 .player[data-idle] { cursor: none; }
-.player[data-idle] .player__title, .player[data-idle] .player__notices { opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
-.player[data-idle] .strip { transform: translateY(30%); opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
-.strip__list { display: flex; gap: var(--space-3); margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; }
-.mini { flex: 1; min-width: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--n-2); }
-.mini b { display: block; font-size: var(--text-lg); }
-.mini span { display: block; overflow: hidden; color: var(--n-5); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.player[data-idle] .player__title, .player[data-idle] .player__notices, .player[data-idle] .player__actions { opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
+.player[data-idle] .strip { transform: translateX(-30%); opacity: 0; pointer-events: none; transition-timing-function: var(--ease-exit); }
+.strip__head { display: flex; align-items: baseline; justify-content: space-between; padding: var(--space-1) var(--space-2); }
+.strip__label { color: var(--n-4); font-size: var(--text-sm); font-weight: var(--weight-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.strip__pos { color: var(--n-4); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+/* The padding leaves room for the focus ring, which the overflow would clip otherwise. */
+.strip__list { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; min-height: 0; overflow: hidden; margin: 0 -8px; padding: 8px; list-style: none; }
+.mini {
+  display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 3.4rem;
+  padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--n-6); text-align: left; cursor: pointer;
+}
+.mini:hover { background: var(--n-2); }
+.mini[data-cursor] { background: var(--n-3); }
+.mini:focus { outline: var(--focus-ring); outline-offset: 3px; }
 .mini[aria-current="true"] { background: var(--n-6); color: var(--n-0); }
-.mini[aria-current="true"] span { color: var(--n-1); }
-.strip .button { flex: none; white-space: nowrap; }
+.mini__no { flex: none; width: 2.2rem; color: var(--n-4); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.mini__mono { flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); background: var(--n-2); color: var(--n-6); font-weight: var(--weight-heading); }
+.mini__text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.mini__name { overflow: hidden; font-weight: var(--weight-ui); line-height: var(--leading-ui); text-overflow: ellipsis; white-space: nowrap; }
+.mini__sub { color: var(--n-4); font-size: var(--text-sm); }
+/* Brand gris is 6.07:1 on Hueso: the muted text of the inverted row. */
+.mini[aria-current="true"] .mini__no, .mini[aria-current="true"] .mini__sub { color: var(--brand-gris); }
+.mini[aria-current="true"] .mini__mono { background: var(--n-0); }
+.mini__dot { flex: none; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--live); }
+.mini__ok { flex: none; padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--accent); color: var(--accent-on); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-ui); }
+.strip__hint { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-2) var(--space-2) 0; border-top: var(--border-hairline); color: var(--n-4); font-size: var(--text-sm); }
+.strip__hint kbd { padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--n-3); color: var(--n-6); font: inherit; }
+.player__actions { position: absolute; right: var(--safe-x); bottom: var(--safe-y); display: flex; gap: var(--space-3); }
+.player__actions .button { white-space: nowrap; }
 
 @media (max-width: 720px) {
   .info__name { font-size: var(--text-2xl); }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
-  .strip { flex-wrap: wrap; }
-  .mini:nth-child(1), .mini:nth-child(5) { display: none; }
+  /* Phones: the column becomes a bottom sheet with the cursor and one channel on each side. */
+  .player { --column-w: 0px; }
+  .player__title, .player__notices { left: var(--safe-x); }
+  .player__title, .player__notices { max-width: calc(100% - 2 * var(--safe-x)); }
+  .strip { top: auto; right: var(--safe-x); bottom: calc(var(--safe-y) + 4rem); width: auto; }
   .rail { display: none; }
   .shell { margin-left: 0; }
   .shell .info, .shell [data-view="grid"] > .grid, .shell .search { padding-left: var(--safe-x); }
@@ -303,5 +333,8 @@ html[data-native-video] .player__video { display: none; }
 .no-flex-gap.tv .drawer__item > * + * { margin-left: var(--space-4); }
 .no-flex-gap .actions > * { margin: 0 var(--space-2) var(--space-2) 0; }
 .no-flex-gap .player__title > * + * { margin-left: var(--space-3); }
-.no-flex-gap .strip > * + * { margin-left: var(--space-4); }
-.no-flex-gap .strip__list > * + * { margin-left: var(--space-3); }
+.no-flex-gap .strip > * + * { margin-top: var(--space-2); }
+.no-flex-gap .strip__list > * + * { margin-top: var(--space-2); }
+.no-flex-gap .mini > * + * { margin-left: var(--space-3); }
+.no-flex-gap .strip__hint > * + * { margin-left: var(--space-2); }
+.no-flex-gap .player__actions > * + * { margin-left: var(--space-3); }

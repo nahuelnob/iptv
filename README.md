@@ -18,8 +18,9 @@ Open **Lista** and paste a playlist URL or open an `.m3u` file; the last URL tha
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
 
 Remote / keyboard: arrows move, OK (Enter) plays, ◀ from the first column opens the menu and categories,
-Back (Esc) undoes one step (menu → header → section → category). While watching, ▲ ▼ (or CH+ CH-) change
-channel within the list you came from. Holding OK on a channel (or pressing F) adds or removes a favorite.
+Back (Esc) undoes one step (menu → header → section → category). While watching, the channel column
+lists the channels you came from: ▲ ▼ move a cursor without leaving the channel on screen and OK
+switches to it, while CH+ CH- (PageUp PageDown on a keyboard) switch directly. Holding OK on a channel (or pressing F) adds or removes a favorite.
 
 Argentine free-to-air channels, curated by Free-TV (no pay channels):
 `https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_argentina.m3u8`

@@ -12,9 +12,15 @@ export function neighborChannel(list, current, step) {
 // The strip: up to `radius` channels on each side of the current one. Short lists show each channel
 // once instead of wrapping into repeats; the extra slot of an even count goes below.
 export function neighborWindow(list, current, radius = 2) {
+  return windowAround(list, current, 2 * radius + 1);
+}
+
+// The channel column: `size` channels (as many as fit on screen) around the current one, which sits
+// in the middle; with an even size the extra channel goes below.
+export function windowAround(list, current, size) {
   const index = list.indexOf(current);
   if (index === -1) return [current];
-  const span = Math.min(list.length, 2 * radius + 1);
+  const span = Math.max(1, Math.min(list.length, size));
   const before = Math.floor((span - 1) / 2);
   return Array.from({ length: span }, (_, i) => list[(index - before + i + list.length) % list.length]);
 }

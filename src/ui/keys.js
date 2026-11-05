@@ -19,11 +19,21 @@ export function isBack(event) {
     || BACK_KEY_CODES.has(event.keyCode);
 }
 
-// While watching, ▲ / CH+ go to the channel above and ▼ / CH- to the one below.
+// While watching, ▲ ▼ move a cursor through the channel column without leaving the channel on
+// screen; OK switches to it.
+export function browseStepOf(event) {
+  switch (event.key) {
+    case 'ArrowUp': return -1;
+    case 'ArrowDown': return 1;
+    default: return 0;
+  }
+}
+
+// CH+ / CH- (PageUp / PageDown on a keyboard) switch to the channel above or below right away.
 export function channelStepOf(event) {
   switch (event.key) {
-    case 'ArrowUp': case 'ChannelUp': case 'PageUp': return -1;
-    case 'ArrowDown': case 'ChannelDown': case 'PageDown': return 1;
+    case 'ChannelUp': case 'PageUp': return -1;
+    case 'ChannelDown': case 'PageDown': return 1;
     default: return 0;
   }
 }
