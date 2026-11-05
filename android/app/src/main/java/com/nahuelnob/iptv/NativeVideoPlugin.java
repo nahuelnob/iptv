@@ -21,6 +21,7 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.HttpDataSource;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.ui.PlayerView;
@@ -130,7 +131,12 @@ public class NativeVideoPlugin extends Plugin {
             .setConnectTimeoutMs(TIMEOUT_MS)
             .setReadTimeoutMs(TIMEOUT_MS);
 
-        player = new ExoPlayer.Builder(getContext())
+        // The device's decoders first; the FFmpeg extension only for formats it has none for (MP2
+        // audio on the B866V2, which otherwise plays the picture without sound).
+        DefaultRenderersFactory renderers = new DefaultRenderersFactory(getContext())
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+
+        player = new ExoPlayer.Builder(getContext(), renderers)
             .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
             .build();
         player.addListener(listener);
