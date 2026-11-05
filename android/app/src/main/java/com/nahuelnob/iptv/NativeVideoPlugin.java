@@ -3,6 +3,9 @@ package com.nahuelnob.iptv;
 import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -57,6 +60,9 @@ public class NativeVideoPlugin extends Plugin {
     private static final int TIMEOUT_MS = 15_000;
     // Consecutive network failures rejoined before giving up; reset whenever playback resumes.
     private static final int MAX_REJOINS = 3;
+    // How long a channel waits for its video surface before loading anyway, and how often it checks.
+    private static final long SURFACE_WAIT_MS = 1_000;
+    private static final long SURFACE_POLL_MS = 16;
 
     private ExoPlayer player;
     private PlayerView view;
@@ -66,6 +72,8 @@ public class NativeVideoPlugin extends Plugin {
     private boolean forcedHls;
     private int rejoins;
     private boolean resumeOnForeground;
+    // Bumped by every play() and stop(): a load still waiting for its surface runs only if it is the latest.
+    private int loadToken;
 
     @PluginMethod
     public void play(PluginCall call) {
@@ -84,16 +92,43 @@ public class NativeVideoPlugin extends Plugin {
             id = requestedId;
             forcedHls = false;
             rejoins = 0;
-            load(isHlsPath(requested));
+            // The view first, then the stream once its surface exists. Loading first let some decoders
+            // (an Android 11 Flow deco) configure before the surface arrived: green, garbled video until
+            // the channel was switched away and back.
             view.setVisibility(View.VISIBLE);
+            int token = ++loadToken;
+            boolean asHls = isHlsPath(requested);
+            whenSurfaceReady(token, 0, () -> load(asHls));
             call.resolve();
         });
+    }
+
+    // Runs start once the video surface can take frames, or after SURFACE_WAIT_MS at most, unless a
+    // newer play() or a stop() came in meanwhile.
+    private void whenSurfaceReady(int token, long waited, Runnable start) {
+        if (token != loadToken || player == null || url == null) return;
+        if (surfaceReady() || waited >= SURFACE_WAIT_MS) {
+            start.run();
+            return;
+        }
+        view.postDelayed(() -> whenSurfaceReady(token, waited + SURFACE_POLL_MS, start), SURFACE_POLL_MS);
+    }
+
+    private boolean surfaceReady() {
+        View surface = view.getVideoSurfaceView();
+        if (surface instanceof TextureView) return ((TextureView) surface).isAvailable();
+        if (surface instanceof SurfaceView) {
+            Surface holder = ((SurfaceView) surface).getHolder().getSurface();
+            return holder != null && holder.isValid();
+        }
+        return true;
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
         getActivity().runOnUiThread(() -> {
             url = null;
+            loadToken++;
             if (player != null) {
                 player.stop();
                 player.clearMediaItems();
@@ -117,6 +152,7 @@ public class NativeVideoPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
+        loadToken++;
         if (player == null) return;
         player.release();
         player = null;
