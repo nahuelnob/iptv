@@ -15,7 +15,7 @@ const out = join(root, 'site');
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 
-for (const entry of ['index.html', 'offline.html', 'assets', '.nojekyll']) {
+for (const entry of ['index.html', 'offline.html', 'assets', 'playlists', '.nojekyll']) {
   await cp(join(root, entry), join(out, entry), { recursive: true });
 }
 

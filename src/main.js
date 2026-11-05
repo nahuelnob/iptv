@@ -16,6 +16,13 @@ import { enableSpatialNav, focusElement, isVisible } from './ui/spatial-nav.js';
 import { connectNativeBack } from './infra/native-back.js';
 import { checkForUpdate } from './infra/app-update.js';
 import { createUpdatePrompt } from './ui/update-prompt.js';
+import { nextTap, tapHint } from './domain/dev-mode.js';
+import { isDevMode, saveDevMode } from './infra/dev-mode-store.js';
+
+// The owner's own list, published with the site (playlists/mi-lista.m3u). It loads on every start
+// unless the developer options are on, which also bring back Lista to change it.
+const OWN_PLAYLIST = 'playlists/mi-lista.m3u';
+const TOAST_MS = 3000;
 
 const $ = (selector) => document.querySelector(selector);
 const views = {
@@ -34,6 +41,11 @@ const fileInput = $('[data-source-file]');
 const announcer = $('[data-announce]');
 const clock = $('[data-clock]');
 const context = $('[data-context]');
+const toast = $('[data-toast]');
+
+let devMode = isDevMode();
+let tapStreak = null;
+let toastTimer = null;
 
 const state = {
   channels: [],
@@ -90,7 +102,8 @@ function render() {
   if (state.section === 'search') return renderSearch();
   if (state.status === 'loading') return renderLoading();
   if (!state.channels.length) {
-    return showMessage(...(state.status === 'error' ? [errorPanel()] : sourcePanels()));
+    if (state.status === 'error') return showMessage(errorPanel());
+    return showMessage(...(devMode ? sourcePanels() : [ownListPanel()]));
   }
   if (state.section === 'favorites') return renderFavorites();
   renderHome();
@@ -218,11 +231,25 @@ function errorPanel({ actions = true } = {}) {
     el('p', {}, body),
     actions ? el('div', { className: 'actions' },
       el('button', { className: 'button button--primary', type: 'button', 'data-nav': '', 'data-action': 'retry' }, 'Reintentar'),
-      el('button', { className: 'button', type: 'button', 'data-nav': '', 'data-go': 'playlist' }, 'Cambiar lista'),
-      saved && saved !== source.url
+      // Changing the list is a developer option.
+      devMode
+        ? el('button', { className: 'button', type: 'button', 'data-nav': '', 'data-go': 'playlist' }, 'Cambiar lista')
+        : null,
+      devMode && saved && saved !== source.url
         ? el('button', { className: 'button', type: 'button', 'data-nav': '', 'data-action': 'use-saved' }, 'Usar la lista guardada')
         : null,
     ) : null,
+  );
+}
+
+// No channels and no error, with Lista hidden: offer to load the own list again.
+function ownListPanel() {
+  return el('div', { className: 'panel' },
+    el('h2', {}, 'Tu lista de canales'),
+    el('p', {}, 'Todavía no hay canales para mostrar.'),
+    el('div', { className: 'actions' },
+      el('button', { className: 'button button--primary', type: 'button', 'data-nav': '', 'data-action': 'load-own' }, 'Cargar la lista'),
+    ),
   );
 }
 
@@ -238,7 +265,7 @@ function showInfo(tile) {
 
 function goSection(section) {
   nav.close(false);
-  state.section = section;
+  state.section = section === 'playlist' && !devMode ? 'home' : section;
   render();
   focusDefault();
 }
@@ -335,7 +362,8 @@ async function load(readText, source) {
   state.loading = null;
   state.error = null;
   if (!state.categories.some((g) => g.name === state.category)) state.category = ALL;
-  if (source.url) rememberUrl(source.url);
+  // The own list is the default, not a choice: remembering it would replace the list a developer picked.
+  if (source.url && source.url !== ownPlaylistUrl()) rememberUrl(source.url);
   announce(channels.length === 1 ? '1 canal cargado.' : `${channels.length} canales cargados.`);
   render();
   focusDefault();
@@ -346,7 +374,7 @@ function fail(error) {
   state.error = error;
   state.loading = null;
   state.status = state.channels.length ? 'ready' : 'error';
-  state.section = state.channels.length ? 'playlist' : 'home';
+  state.section = state.channels.length && devMode ? 'playlist' : 'home';
   render();
   focusDefault();
 }
@@ -354,7 +382,7 @@ function fail(error) {
 // Only true when another list still works: the loaded one, or a saved URL other than the one that failed.
 function withSavedNote(message, source) {
   const saved = lastUrl();
-  const fallback = state.channels.length > 0 || (saved && saved !== source.url);
+  const fallback = state.channels.length > 0 || (devMode && saved && saved !== source.url);
   return fallback ? `${message} La última lista que funcionó sigue guardada.` : message;
 }
 
@@ -424,6 +452,9 @@ document.addEventListener('click', (event) => {
   if (!target) return;
   // ▲ ▼ in the player move through the list this tile belongs to.
   if (target.dataset.index) return player.open(state.channels[Number(target.dataset.index)], state.visible);
+  // OK on Inicio in the open menu while already on Inicio counts toward the developer options; it
+  // keeps the menu open (instead of moving to the grid) so seven OKs in a row stay on Inicio.
+  if (target.dataset.go === 'home' && state.section === 'home' && nav.isOpen()) return countDevTap();
   if (target.dataset.go) return goSection(target.dataset.go);
   if (target.dataset.cat) return setCategory(target.dataset.cat);
   if (target.hasAttribute('data-open-cats')) {
@@ -435,8 +466,54 @@ document.addEventListener('click', (event) => {
     case 'reload': return loadUrl(state.source.url);
     case 'retry': return retry();
     case 'use-saved': return loadUrl(lastUrl());
+    case 'load-own': return loadUrl(ownPlaylistUrl());
   }
 });
+
+// ---- Developer options --------------------------------------------------
+
+function ownPlaylistUrl() {
+  return new URL(OWN_PLAYLIST, location.href).href;
+}
+
+// Lista appears in the rail and the menu only with the developer options on.
+function applyDevMode() {
+  for (const item of document.querySelectorAll('.rail__item[data-go="playlist"], .drawer__item[data-go="playlist"]')) {
+    item.hidden = !devMode;
+  }
+}
+
+function countDevTap() {
+  const tap = nextTap(tapStreak, Date.now());
+  tapStreak = tap.streak;
+
+  if (!tap.toggle) {
+    const hint = tapHint(tap.remaining, !devMode);
+    if (hint) showToast(hint);
+    return;
+  }
+
+  devMode = !devMode;
+  saveDevMode(devMode);
+  applyDevMode();
+  render();
+
+  if (devMode) {
+    showToast('Opciones de desarrollador activadas: Lista ya aparece en el menú.');
+    return;
+  }
+
+  showToast('Opciones de desarrollador desactivadas.');
+  // Back to the own list if a developer had loaded another one.
+  if (state.source?.url !== ownPlaylistUrl()) loadUrl(ownPlaylistUrl());
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, TOAST_MS);
+}
 
 document.addEventListener('keydown', (event) => {
   if (!isBack(event) || event.defaultPrevented || player.isOpen()) return;
@@ -534,13 +611,10 @@ function el(tag, props, ...children) {
 
 tick();
 setInterval(tick, 15000);
-const saved = lastUrl();
-// Open on the last list that worked, so a channel is one move and OK away (PLAN section 1).
-if (saved) loadUrl(saved);
-else {
-  render();
-  focusDefault();
-}
+applyDevMode();
+// Open on the own list, so a channel is one move and OK away (PLAN section 1). With the developer
+// options on, the last list that worked wins, as before.
+loadUrl((devMode && lastUrl()) || ownPlaylistUrl());
 
 // Android app: offer a newer APK once the list is up. Never interrupts a channel being watched.
 setTimeout(async () => {

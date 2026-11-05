@@ -193,6 +193,14 @@ mark { background: none; color: inherit; text-decoration: underline; text-decora
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 /* Update dialog (Android app): above the player, dimming whatever is behind it. */
 .update { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgb(0 0 0 / 0.72); }
+/* App: short notices over everything, bottom centre, clear of the TV's overscan. */
+.toast {
+  position: fixed; left: 50%; bottom: var(--safe-y); z-index: 50; transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--safe-x)); box-sizing: border-box; margin: 0;
+  padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm);
+  background: var(--n-6); color: var(--n-0); font-weight: var(--weight-ui); text-align: center;
+  box-shadow: var(--elevation-overlay); animation: fade-in var(--dur-standard) var(--ease-entry);
+}
 .update[hidden] { display: none; }
 .update__card { margin: var(--space-5); box-shadow: inset 4px 0 0 var(--accent); }
 .update__status { color: var(--n-6); }

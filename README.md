@@ -14,7 +14,11 @@ npm test    # domain tests (node:test, no dependencies)
 and CSS for old Android TV WebViews (Chrome 66), `src/polyfills.js` covers the missing APIs, and
 the "Old TV WebViews" block at the end of `styles/app.css` covers what cannot be lowered.
 
-Open **Lista** and paste a playlist URL or open an `.m3u` file; the last URL that worked loads on start.
+The app opens on the owner's own list (`playlists/mi-lista.m3u`, below) and has no way to change it
+in sight. Changing the list is a developer option: in the side menu, while on Inicio, press OK seven
+times in a row on **Inicio** (from the fourth press a notice counts down). That brings back **Lista**,
+where you paste a playlist URL or open an `.m3u` file, and the last URL that worked then loads on start.
+The same gesture hides Lista again and goes back to the own list.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
 
 Remote / keyboard: arrows move, OK (Enter) plays, ◀ from the first column opens the menu and categories,
@@ -27,6 +31,10 @@ Argentine free-to-air channels, curated by Free-TV (no pay channels):
 
 A larger list by iptv-org also includes some pay channels; skip those:
 `https://iptv-org.github.io/iptv/countries/ar.m3u`
+
+The owner's own list, 71 channels picked by hand from that iptv-org list (copy of 2026-11-05), each
+entry kept exactly as the source wrote it; it is published with the site:
+`https://nahuelnob.github.io/iptv/playlists/mi-lista.m3u` (`playlists/mi-lista.m3u` in this repository).
 
 YouTube channels play through YouTube's official embed. Channels listed by name
 (`/c/name`, `/user/name`, `/@handle`) need their channel ID in `src/data/youtube-channels.js`.
