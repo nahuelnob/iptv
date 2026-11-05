@@ -17,7 +17,7 @@ Branch: `feat/legacy-webview` (from `main` at `ee62bea`) · Delivery: `ask-on-ri
 | T2 | S1 S3 | inline | done | CSS fallbacks for what esbuild cannot lower: flex `gap` (probe in `index.html`), `clamp()`/`min()`/`max()`, `aspect-ratio`, `:focus-visible`; inert in current browsers (verifier) |
 | T3 | S1 | inline | done (uncommitted) | the chrome66 build served from this PC (`adb reverse tcp:5199`) runs on the B866V2: no JS errors, grid, drawer, focus ring and list load (217 channels) verified with screenshots |
 | T4 | S2 | inline | done (uncommitted) | root cause found and fixed in `src/ui/player.js` (`enterFullscreen` is a no-op in the Android app); verified with the real remote: OK → picture, Back → grid, OK → picture, ▼ → next channel with picture, no crash |
-| T5 | S1 | inline | in progress | user: "Yes, set it up". Pages source switched to GitHub Actions (`build_type: workflow`); `.github/workflows/pages.yml` runs tests, builds `site/` and deploys on push to `main`; README updated; independent verifier launched (Risk: item 5, delivery) |
+| T5 | S1 | inline | done | Commits `1132204` (build), `53dd1ef` (workflow), `9236f1a` (native diagnostics) on main. The push that created the workflow did not trigger it; run `41914920487` started with `workflow_dispatch`: build ✓ (tests) and deploy ✓. Pages now serves the bundle (no top-level imports, no `?.`, polyfills and fullscreen fix present). user: "Yes, set it up". Pages source switched to GitHub Actions (`build_type: workflow`); `.github/workflows/pages.yml` runs tests, builds `site/` and deploys on push to `main`; README updated; independent verifier launched (Risk: item 5, delivery) |
 
 ## Log
 
