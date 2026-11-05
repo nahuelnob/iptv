@@ -113,8 +113,16 @@
       <p class="player__notice" data-player-notice role="status" hidden></p>
       <p class="player__status" data-player-status role="status" aria-live="polite" hidden></p>
     </div>
-    <div class="strip" data-strip>
-      <ul class="strip__list" data-strip-list aria-label="Canales cercanos"></ul>
+    <!-- Channel column: ▲ ▼ move a cursor without leaving the channel on screen, OK switches to it. -->
+    <nav class="strip" data-strip aria-label="Canales">
+      <div class="strip__head">
+        <span class="strip__label">Canales</span>
+        <span class="strip__pos" data-strip-pos></span>
+      </div>
+      <ul class="strip__list" data-strip-list></ul>
+      <p class="strip__hint"><kbd>▲ ▼</kbd> recorrer <kbd>OK</kbd> ver</p>
+    </nav>
+    <div class="player__actions">
       <button class="button" type="button" data-nav data-player-unmute hidden>Activar sonido</button>
       <button class="button" type="button" data-nav data-player-close>Volver</button>
     </div>

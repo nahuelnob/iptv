@@ -1,8 +1,8 @@
-import { isBack, channelStepOf, directionOf } from './keys.js';
+import { isBack, browseStepOf, channelStepOf, directionOf } from './keys.js';
 import { focusElement } from './spatial-nav.js';
 import { qualityLabel } from './tiles.js';
 import { monogram } from '../domain/monogram.js';
-import { neighborChannel, neighborWindow } from '../domain/zapping.js';
+import { neighborChannel, windowAround } from '../domain/zapping.js';
 import { startSession, markPlaying, nextReconnect } from '../domain/reconnect.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
@@ -10,11 +10,17 @@ import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
 import { nativeVideo } from '../infra/native-video.js';
 
 const ZAP_DELAY_MS = 400;
+// Rows of the channel column: as many as fit (measured after the first render), three on phones,
+// where the column is a bottom sheet with no height of its own.
+const FIRST_ROWS = 7;
+const PHONE_ROWS = 3;
+const PHONE = '(max-width: 720px)';
+const SWITCH_HINT = 'Elegí otro canal con ▲ ▼ y OK.';
 const IDLE_MS = 4000;
 const CLOSE_FALLBACK_MS = 600;
 const GENERIC_CAUSE = 'La señal no responde o el navegador no la admite.';
 const NO_PICTURE =
-  'Se escucha el audio pero no hay imagen: este canal envía el video en un formato que el navegador no puede mostrar (por ejemplo MPEG-2). Probá otra señal del mismo canal o presioná ▼ para pasar al siguiente.';
+  'Se escucha el audio pero no hay imagen: este canal envía el video en un formato que el navegador no puede mostrar (por ejemplo MPEG-2). Probá otra señal del mismo canal o elegí otro con ▲ ▼ y OK.';
 
 const CLOUDFLARE_PROXY =
   'https://proxy.nahue-santini.workers.dev/?url=';
@@ -35,6 +41,7 @@ export function createPlayer(root, {
   const notice = root.querySelector('[data-player-notice]');
   const status = root.querySelector('[data-player-status]');
   const stripList = root.querySelector('[data-strip-list]');
+  const stripPos = root.querySelector('[data-strip-pos]');
   const favoriteButton = root.querySelector('[data-player-fav]');
   const unmuteButton = root.querySelector('[data-player-unmute]');
   const closeButton = root.querySelector('[data-player-close]');
@@ -43,6 +50,9 @@ export function createPlayer(root, {
   let current = null;
   let returnFocusTo = null;
   let channel = null;
+  // The channel the column's cursor is on; it is `channel` until ▲ ▼ move it.
+  let cursor = null;
+  let columnRows = FIRST_ROWS;
   let opened = null;
   let list = [];
   let zapTimer = null;
@@ -116,6 +126,15 @@ export function createPlayer(root, {
       return;
     }
 
+    const browse = browseStepOf(event);
+
+    if (browse) {
+      event.preventDefault();
+      wake();
+      moveCursor(neighborChannel(list, cursor, browse));
+      return;
+    }
+
     const idle = root.hasAttribute('data-idle');
 
     wake();
@@ -126,6 +145,11 @@ export function createPlayer(root, {
   });
 
   root.addEventListener('pointermove', wake);
+
+  // A rotated phone or a resized window changes how many rows fit.
+  window.addEventListener('resize', () => {
+    if (!root.hidden && cursor) renderColumn();
+  });
 
   window.addEventListener('popstate', () => {
     if (!root.hidden) hide();
@@ -206,14 +230,17 @@ export function createPlayer(root, {
     }
 
     show(selected);
-    focusElement(favoriteButton);
+    focusCursor();
     wake();
     start(selected);
   }
 
+  // CH+ / CH-: straight to the next channel, waiting a moment in case the key is pressed again.
   function zap(step) {
-    const next = neighborChannel(list, channel, step);
+    switchTo(neighborChannel(list, channel, step), ZAP_DELAY_MS);
+  }
 
+  function switchTo(next, delay) {
     if (next === channel) return;
 
     teardown();
@@ -225,7 +252,124 @@ export function createPlayer(root, {
 
     zapTimer = setTimeout(() => {
       start(next);
-    }, ZAP_DELAY_MS);
+    }, delay);
+  }
+
+  // OK on a row: switch to that channel; on the channel already on screen, just hide the controls.
+  function pick(target) {
+    if (target === channel) {
+      rest();
+      return;
+    }
+
+    switchTo(target, 0);
+  }
+
+  function moveCursor(target) {
+    cursor = target;
+    renderColumn();
+    focusCursor();
+  }
+
+  function focusCursor() {
+    const row = stripList.querySelector('[data-cursor]');
+    if (row) focusElement(row);
+  }
+
+  // The column: the cursor in the middle and as many channels around it as fit. Rendering replaces
+  // the rows, so a focus that was inside moves to the new cursor row instead of being lost.
+  function renderColumn() {
+    const hadFocus = stripList.contains(document.activeElement);
+
+    renderRows();
+
+    // The rows' height depends on the font size (TV or desktop) and the column's on the screen:
+    // measure the rendered rows and render again once if a different count fits.
+    const fit = rowsThatFit();
+    if (fit !== columnRows) {
+      columnRows = fit;
+      renderRows();
+    }
+
+    const index = list.indexOf(cursor);
+    stripPos.textContent = index === -1 ? '' : `${index + 1} de ${list.length}`;
+
+    if (hadFocus) focusCursor();
+  }
+
+  function rowsThatFit() {
+    if (window.matchMedia?.(PHONE).matches) return PHONE_ROWS;
+
+    const items = stripList.children;
+    const style = getComputedStyle(stripList);
+    const space = stripList.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+
+    if (!items.length || space <= 0) return columnRows;
+
+    const row = items[0].offsetHeight;
+    // Step from one row to the next: the row plus the gap (or the margin old WebViews use instead).
+    const step = items.length > 1 ? items[1].offsetTop - items[0].offsetTop : row;
+
+    if (row <= 0 || step <= 0) return columnRows;
+
+    return Math.max(1, Math.floor((space + step - row) / step));
+  }
+
+  function renderRows() {
+    stripList.replaceChildren(
+      ...windowAround(list, cursor, columnRows).map(neighbor => {
+        const playing = neighbor === channel;
+        const item = document.createElement('li');
+        const row = document.createElement('button');
+
+        row.type = 'button';
+        row.className = 'mini';
+        row.setAttribute('data-nav', '');
+        row.setAttribute('aria-current', String(playing));
+        if (neighbor === cursor) row.setAttribute('data-cursor', '');
+
+        const no = document.createElement('span');
+        no.className = 'mini__no';
+        no.textContent = numberOf(neighbor);
+
+        const mono = document.createElement('b');
+        mono.className = 'mini__mono';
+        mono.textContent = monogram(neighbor.name);
+
+        const text = document.createElement('span');
+        text.className = 'mini__text';
+
+        const name = document.createElement('span');
+        name.className = 'mini__name';
+        name.textContent = neighbor.name;
+
+        const sub = document.createElement('span');
+        sub.className = 'mini__sub';
+        // Always a line, empty or not, so every row has the same height and the count that fits holds.
+        sub.textContent = [playing ? 'Viendo ahora' : null, qualityLabel(neighbor.quality)]
+          .filter(Boolean)
+          .join(' · ') || ' ';
+
+        text.append(name, sub);
+        row.append(no, mono, text);
+
+        if (playing) {
+          const dot = document.createElement('span');
+          dot.className = 'mini__dot';
+          row.append(dot);
+        } else if (neighbor === cursor) {
+          const ok = document.createElement('kbd');
+          ok.className = 'mini__ok';
+          ok.textContent = 'OK';
+          row.append(ok);
+        }
+
+        row.addEventListener('click', () => pick(neighbor));
+
+        item.append(row);
+        return item;
+      })
+    );
   }
 
   function start(target) {
@@ -275,27 +419,8 @@ export function createPlayer(root, {
 
     renderFavorite();
 
-    stripList.replaceChildren(
-      ...neighborWindow(list, target).map(neighbor => {
-        const item = document.createElement('li');
-
-        item.className = 'mini';
-        item.setAttribute(
-          'aria-current',
-          String(neighbor === target)
-        );
-
-        const mono = document.createElement('b');
-        mono.textContent = monogram(neighbor.name);
-
-        const name = document.createElement('span');
-        name.textContent = neighbor.name;
-
-        item.append(mono, name);
-
-        return item;
-      })
-    );
+    cursor = target;
+    renderColumn();
 
     const warnings = [
       target.geoBlocked
@@ -310,7 +435,7 @@ export function createPlayer(root, {
     notice.hidden = !warnings.length;
 
     notice.textContent = warnings.length
-      ? `${warnings.join(' ')} Presioná ▼ para pasar al canal siguiente.`
+      ? `${warnings.join(' ')} ${SWITCH_HINT}`
       : '';
   }
 
@@ -675,7 +800,7 @@ export function createPlayer(root, {
     teardown();
 
     setStatus(
-      `No se pudo reproducir ${channel.name}. ${cause} Presioná ▼ para pasar al canal siguiente.`,
+      `No se pudo reproducir ${channel.name}. ${cause} ${SWITCH_HINT}`,
       true
     );
   }
@@ -726,11 +851,20 @@ export function createPlayer(root, {
 
     clearTimeout(idleTimer);
 
-    idleTimer = setTimeout(() => {
-      if (status.hidden && !root.hidden) {
-        root.setAttribute('data-idle', '');
-      }
-    }, IDLE_MS);
+    idleTimer = setTimeout(rest, IDLE_MS);
+  }
+
+  // Hides the controls over the video, unless a status needs reading. A cursor left on another
+  // channel goes back to the one on screen, so the column opens on it next time.
+  function rest() {
+    if (!status.hidden || root.hidden) return;
+
+    root.setAttribute('data-idle', '');
+
+    if (cursor !== channel) {
+      cursor = channel;
+      renderColumn();
+    }
   }
 
   // --------------------------------------------------
