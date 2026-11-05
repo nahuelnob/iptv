@@ -157,115 +157,115 @@ https://stmv6.voxtvhd.com.br/cineclasico/cineclasico/playlist.m3u8
 #EXTINF:-1 tvg-id="XtremaTerror.ar@SD" tvg-logo="https://i.imgur.com/FcaTUym.png" http-referrer="https://xtrematv.com/?p=1456" group-title="Movies",Xtrema Terror
 #EXTVLCOPT:http-referrer=https://xtrematv.com/?p=1456
 https://stmv6.voxtvhd.com.br/cineterror/cineterror/playlist.m3u8
-#EXTINF:0 group-title="Entretenimiento",A&E HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/A%26E_Network_logo.svg/960px-A%26E_Network_logo.svg.png" group-title="Entretenimiento",A&E HD
 #EXTGRP:Entretenimiento
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0mt
-#EXTINF:0 group-title="Cine",AXN HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/AXN_logo_%282015%29.svg/960px-AXN_logo_%282015%29.svg.png" group-title="Cine",AXN HD
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0q0
-#EXTINF:0 group-title="Entretenimiento",Adult Swim
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Adult_Swim_2003_logo.svg/960px-Adult_Swim_2003_logo.svg.png" group-title="Entretenimiento",Adult Swim
 #EXTGRP:Entretenimiento
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0pk
-#EXTINF:0 group-title="Documentales",Animal Planet
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/2018_Animal_Planet_logo.svg/960px-2018_Animal_Planet_logo.svg.png" group-title="Documentales",Animal Planet
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0po
-#EXTINF:0 group-title="Cine",Cinecanal
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/CinecanalLA.png/960px-CinecanalLA.png" group-title="Cine",Cinecanal
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0pp
-#EXTINF:0 group-title="Entretenimiento",Comedy Central HD
+#EXTINF:0 tvg-logo="https://images.pluto.tv/channels/64f8a408bd341e000818fcda/colorLogoPNG.png" group-title="Entretenimiento",Comedy Central HD
 #EXTGRP:Entretenimiento
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0mu
-#EXTINF:0 group-title="Documentales",Discovery Science
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Discovery_science_new_logo_2017.png/960px-Discovery_science_new_logo_2017.png" group-title="Documentales",Discovery Science
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0pb
-#EXTINF:0 group-title="Documentales",Discovery Turbo
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Discovery_Turbo_2025.svg/1920px-Discovery_Turbo_2025.svg.png" group-title="Documentales",Discovery Turbo
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0p8
-#EXTINF:0 group-title="Documentales",Discovery World HD
+#EXTINF:0 tvg-logo="https://i.imgur.com/yNFmUkE.png" group-title="Documentales",Discovery World HD
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0n8
-#EXTINF:0 group-title="Infantiles",Disney Jr.
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/e3/2024_Disney_Jr._Logo.svg" group-title="Infantiles",Disney Jr.
 #EXTGRP:Infantiles
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0p7
-#EXTINF:0 group-title="Deportes",ESPN
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png" group-title="Deportes",ESPN
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s7
-#EXTINF:0 group-title="Deportes",ESPN 2 HD
+#EXTINF:0 tvg-logo="https://i.imgur.com/00tsvjE.png" group-title="Deportes",ESPN 2 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0qj
-#EXTINF:0 group-title="Deportes",ESPN 3 HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/ESPN3_Logo.png/960px-ESPN3_Logo.png" group-title="Deportes",ESPN 3 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s6
-#EXTINF:0 group-title="Deportes",ESPN 4 HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/ESPN_4_logo.svg/960px-ESPN_4_logo.svg.png" group-title="Deportes",ESPN 4 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s9
-#EXTINF:0 group-title="Deportes",ESPN 5 HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png" group-title="Deportes",ESPN 5 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s5
-#EXTINF:0 group-title="Deportes",ESPN 6 HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png" group-title="Deportes",ESPN 6 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s3
-#EXTINF:0 group-title="Deportes",ESPN 7 HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png" group-title="Deportes",ESPN 7 HD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0s8
-#EXTINF:0 group-title="Cine",HBO Xtreme HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/HBO_Xtreme.svg/960px-HBO_Xtreme.svg.png" group-title="Cine",HBO Xtreme HD
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0qy
-#EXTINF:0 group-title="Documentales",History Channel
+#EXTINF:0 tvg-logo="https://i.imgur.com/OWIK7FJ.png" group-title="Documentales",History Channel
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0st
-#EXTINF:0 group-title="Entretenimiento",Lifetime
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_Lifetime_2020.svg/960px-Logo_Lifetime_2020.svg.png" group-title="Entretenimiento",Lifetime
 #EXTGRP:Entretenimiento
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0pi
-#EXTINF:0 group-title="Entretenimiento",MTV HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/MTV_2021_%28brand_version%29.svg/960px-MTV_2021_%28brand_version%29.svg.png" group-title="Entretenimiento",MTV HD
 #EXTGRP:Entretenimiento
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0nc
-#EXTINF:0 group-title="Documentales",Nat Geo HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Natgeologo.svg/960px-Natgeologo.svg.png" group-title="Documentales",Nat Geo HD
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0pt
-#EXTINF:0 group-title="Infantiles",Nickelodeon HD
+#EXTINF:0 tvg-logo="https://i.imgur.com/E84jnP8.png" group-title="Infantiles",Nickelodeon HD
 #EXTGRP:Infantiles
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0qm
-#EXTINF:0 group-title="Cine",Space HD
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/SpaceLogo.svg/960px-SpaceLogo.svg.png" group-title="Cine",Space HD
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0q2
-#EXTINF:0 group-title="Documentales",TLC
+#EXTINF:0 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/TLC_Logo.svg/960px-TLC_Logo.svg.png" group-title="Documentales",TLC
 #EXTGRP:Documentales
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0t3
-#EXTINF:0 group-title="Deportes",TNT Sports Premium SD
+#EXTINF:0 tvg-logo="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/TNT_Sports_Premium_%28Argentina%29.png/960px-TNT_Sports_Premium_%28Argentina%29.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=thumbnail" group-title="Deportes",TNT Sports Premium SD
 #EXTGRP:Deportes
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0q9
-#EXTINF:0 group-title="Cine",UNIVERSAL CHANNEL HD
+#EXTINF:0 tvg-logo="https://i.imgur.com/jnjvR5f.png" group-title="Cine",UNIVERSAL CHANNEL HD
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0mw
-#EXTINF:0 group-title="Cine",Warner
+#EXTINF:0 tvg-logo="https://i.imgur.com/QtGQR0c.png" group-title="Cine",Warner
 #EXTGRP:Cine
 #EXTVLCOPT:network-caching=1000
 http://181.78.79.131:8000/play/a0sz
