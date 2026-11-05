@@ -63,6 +63,9 @@ dependencies {
     // Native playback (NativeVideoPlugin): device decoders cover MPEG-2 and HEVC that the WebView cannot.
     implementation "androidx.media3:media3-exoplayer:$media3Version"
     implementation "androidx.media3:media3-exoplayer-hls:$media3Version"
+    // Software audio decoders (FFmpeg) for what the device lacks: MPEG-1 Layer II (MP2) from
+    // satellite restreams has no decoder on the B866V2. Jellyfin's prebuilt Media3 extension.
+    implementation "org.jellyfin.media3:media3-ffmpeg-decoder:1.9.0+1"
     implementation "androidx.media3:media3-ui:$media3Version"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

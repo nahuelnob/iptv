@@ -1,6 +1,6 @@
 {
   "name": "iptv-player",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "Web IPTV player for M3U playlists, built for keyboard and TV remote navigation.",
