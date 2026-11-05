@@ -88,6 +88,24 @@ test('in the Android app any other native failure reports a connection error', a
   assert.equal(fetchCalls.length, 0);
 });
 
+test('in a browser a list on the page\'s own server is fetched directly, even over http://', async () => {
+  const fetchCalls = [];
+  globalThis.location = { origin: 'http://localhost:5173', href: 'http://localhost:5173/' };
+  globalThis.fetch = async (url) => {
+    fetchCalls.push(url);
+    return new Response(LIST, { status: 200 });
+  };
+
+  try {
+    const text = await loadFromUrl('http://localhost:5173/playlists/mi-lista.m3u');
+
+    assert.equal(text, LIST);
+    assert.deepEqual(fetchCalls, ['http://localhost:5173/playlists/mi-lista.m3u'], 'no Cloudflare proxy for the own server');
+  } finally {
+    delete globalThis.location;
+  }
+});
+
 test('in a browser an https:// list is still fetched directly first', async () => {
   const fetchCalls = [];
   globalThis.fetch = async (url) => {

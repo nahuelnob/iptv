@@ -21,7 +21,8 @@ export async function loadFromUrl(url) {
 
   const routes = [];
 
-  if (!url.startsWith('http://')) {
+  // The page's own server (the bundled list) needs no proxy, even over http:// in development.
+  if (!url.startsWith('http://') || isSameOrigin(url)) {
     routes.push(() => url);
   }
 
@@ -150,6 +151,14 @@ function timeoutSignal() {
   return typeof AbortSignal.timeout === 'function'
     ? AbortSignal.timeout(TIMEOUT_MS)
     : undefined;
+}
+
+function isSameOrigin(url) {
+  try {
+    return typeof location !== 'undefined' && new URL(url).origin === location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function hostOf(url) {

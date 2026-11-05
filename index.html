@@ -95,6 +95,8 @@
   <input class="visually-hidden" type="file" tabindex="-1" data-source-file
          accept=".m3u,.m3u8,audio/x-mpegurl,application/vnd.apple.mpegurl">
   <p class="visually-hidden" role="status" aria-live="polite" data-announce></p>
+  <!-- Short notices, such as the developer-options count (src/domain/dev-mode.js). -->
+  <p class="toast" role="status" aria-live="polite" data-toast hidden></p>
 
   <div class="player" data-player data-nav-scope hidden role="dialog" aria-modal="true" aria-labelledby="player-title">
     <!-- No native controls: live TV driven by the D-pad; the title and strip are the controls. -->
