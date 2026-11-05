@@ -3,6 +3,7 @@ import { focusElement } from './spatial-nav.js';
 import { qualityLabel } from './tiles.js';
 import { monogram } from '../domain/monogram.js';
 import { neighborChannel, windowAround } from '../domain/zapping.js';
+import { startSession, markPlaying, nextReconnect } from '../domain/reconnect.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
@@ -62,6 +63,11 @@ export function createPlayer(root, {
   let focusAfterClose = null;
   let reenterFullscreen = false;
 
+  // Reconnection of the channel on screen: at most one wait pending, cleared by teardown().
+  let session = startSession();
+  let reconnectTimer = null;
+  let retryWhenVisible = null;
+
   // Android app only: null in a browser.
   const native = nativeVideo();
   let nativeSeq = 0;
@@ -77,6 +83,7 @@ export function createPlayer(root, {
     });
 
     on('playing', (_data, attempt) => {
+      session = markPlaying(session, Date.now());
       setStatus(attempt.noPicture ? NO_PICTURE : null);
     });
 
@@ -85,8 +92,8 @@ export function createPlayer(root, {
       if (attempt.noPicture) setStatus(NO_PICTURE);
     });
 
-    on('error', data => {
-      fail(describeHttpStatus(data.status) ?? GENERIC_CAUSE);
+    on('error', (data, attempt) => {
+      recover(attempt, describeHttpStatus(data.status) ?? GENERIC_CAUSE);
     });
   }
 
@@ -189,7 +196,17 @@ export function createPlayer(root, {
 
   // An audio-only attempt keeps its notice instead of the usual loading/playing statuses.
   video.addEventListener('playing', () => {
+    if (current) session = markPlaying(session, Date.now());
     setStatus(current?.noPicture ? NO_PICTURE : null);
+  });
+
+  // A wait that ended while the app was in the background resumes when it comes back.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !retryWhenVisible) return;
+
+    const retry = retryWhenVisible;
+    retryWhenVisible = null;
+    retry();
   });
 
   video.addEventListener('waiting', () => {
@@ -359,6 +376,7 @@ export function createPlayer(root, {
     if (target !== channel || root.hidden) return;
 
     onWatch(target);
+    session = startSession();
 
     if (parseYouTubeUrl(target.url)) {
       playYouTube(target.url);
@@ -565,7 +583,7 @@ export function createPlayer(root, {
           hls.recoverMediaError();
 
         } else {
-          fail(describeHlsError(data));
+          recover(attempt, describeHlsError(data));
         }
       });
 
@@ -633,13 +651,58 @@ export function createPlayer(root, {
       }
     }
 
-    if (current === attempt) {
-      fail(
-        attempt.viaProxy
-          ? `Falló también el proxy local. ${cause}`
-          : cause
-      );
+    recover(
+      attempt,
+      attempt.viaProxy
+        ? `Falló también el proxy local. ${cause}`
+        : cause
+    );
+  }
+
+  // --------------------------------------------------
+  // RECONEXIÓN
+  // --------------------------------------------------
+
+  // Starts the channel over, as switching channels and back does. The failed stream is stopped
+  // before the wait, so nothing keeps loading; zapping or closing clears the wait (teardown).
+  function recover(attempt, cause) {
+    if (current !== attempt) return;
+
+    const next = nextReconnect(session, Date.now());
+    session = next.session;
+
+    if (next.delay === null) {
+      fail(cause);
+      return;
     }
+
+    const target = channel;
+    const again = attempt.native
+      ? () => playNative(attempt.url)
+      : () => play(attempt.url, { viaProxy: attempt.viaProxy });
+
+    const retry = () => {
+      if (target !== channel || root.hidden) return;
+      again();
+    };
+
+    teardown();
+
+    setStatus(
+      next.limit > 1
+        ? `Se cortó la señal de ${target.name}. Reconectando… (${next.attempt} de ${next.limit})`
+        : `${target.name} no responde. Reintentando…`
+    );
+
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+
+      if (document.hidden) {
+        retryWhenVisible = retry;
+      } else {
+        retry();
+      }
+    }, next.delay);
   }
 
   // --------------------------------------------------
@@ -700,6 +763,10 @@ export function createPlayer(root, {
     }
 
     current = null;
+
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+    retryWhenVisible = null;
 
     hls?.destroy();
     hls = null;

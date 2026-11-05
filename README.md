@@ -39,6 +39,7 @@ YouTube channels play through YouTube's official embed. Channels listed by name
 | `src/domain/library.js` | Favorites and last watched, keyed by stream URL. |
 | `src/domain/search.js` | Channel search ignoring case and accents. |
 | `src/domain/zapping.js` | Channel above/below and the neighbor strip while watching. |
+| `src/domain/reconnect.js` | When a dropped stream is started over: 1, 3, 6 and 10 s waits, one retry if it never played. |
 | `src/domain/monogram.js` | Channel initials shown when there is no logo. |
 | `src/infra/playlist-source.js` | Loading playlists from a URL (15 s timeout) or a local file. |
 | `src/infra/library-store.js` | Saving the library in `localStorage`, tolerant of storage errors. |
