@@ -8,6 +8,12 @@ http://45.171.64.30:6060/play/a005/index.m3u8
 https://prepublish.f.qaotic.net/a07/americahls-100056/playlist_720p.m3u8
 #EXTINF:-1 group-title="General",test1
 http://138.59.227.20:8000/play/a086/index.m3u8
+#EXTINF:-1 group-title="General",test2
+http://138.59.227.20:8000/play/a099/index.m3u8
+#EXTINF:-1 group-title="General",test3
+http://138.59.227.20:8000/play/a084/index.m3u8
+#EXTINF:-1 group-title="General",test4
+http://138.59.227.20:8000/play/a08e/index.m3u8
 #EXTINF:-1 tvg-id="AXNLatinAmerica.us@South" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/AXN_logo_%282015%29.svg/960px-AXN_logo_%282015%29.svg.png" group-title="Movies",AXN Latin America South
 http://45.184.109.10/live/69393EAE6ADBC65A68F942022362A202/10.m3u8
 #EXTINF:-1 tvg-id="Canal26.ar@SD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Canal_26_logo_%282022%29.svg/500px-Canal_26_logo_%282022%29.svg.png" group-title="News",Canal 26 (Argentina) (1080p)
