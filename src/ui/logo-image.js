@@ -13,6 +13,9 @@ const SWEEP_AT = 400;
 
 let observer;
 const watched = new Set();
+// Logos already decoded once: the browser holds them, so they show at once instead of waiting for
+// the observer and decode() again. Without this the player column flashed its letters on every ▲ ▼.
+const painted = new Set();
 
 export function logoImage(src, { className, width, onShow }) {
   const img = document.createElement('img');
@@ -21,14 +24,28 @@ export function logoImage(src, { className, width, onShow }) {
   img.decoding = 'async';
   img.referrerPolicy = 'no-referrer';
 
+  const url = logoUrl(src, width);
+
+  img.addEventListener('error', () => {
+    painted.delete(url);
+    img.remove();
+  }, { once: true });
+
+  if (painted.has(url)) {
+    img.src = url;
+    onShow();
+    return img;
+  }
+
   // "load" fires before a huge logo is decoded; showing it then left blank tiles.
   img.addEventListener('load', () => {
     const decoded = typeof img.decode === 'function' ? img.decode() : Promise.resolve();
-    decoded.then(onShow, () => img.remove());
+    decoded.then(() => {
+      painted.add(url);
+      onShow();
+    }, () => img.remove());
   }, { once: true });
-  img.addEventListener('error', () => img.remove(), { once: true });
 
-  const url = logoUrl(src, width);
   const lazy = lazyObserver();
 
   if (lazy) {

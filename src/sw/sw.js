@@ -82,11 +82,10 @@ async function networkFirstPage(request, keepAlive) {
   }
 }
 
-// Answer from the cache at once when there is a copy, and refresh it in the background.
+// Answer from the cache at once when there is a copy, and refresh it in the background. Never used
+// for the page itself (see networkFirstPage).
 async function staleWhileRevalidate(request, keepAlive) {
-  const navigation = request.mode === 'navigate';
-  // Navigations are stored without their query, so ?anything still opens the cached page.
-  const key = navigation ? stripSearch(request.url) : request.url;
+  const key = request.url;
   const cache = await caches.open(CACHES.app);
 
   // "no-cache" revalidates with the server (a cheap 304 on GitHub Pages) instead of reusing the
@@ -97,14 +96,13 @@ async function staleWhileRevalidate(request, keepAlive) {
       return response;
     });
 
-  const cached = (await cache.match(key)) || (navigation ? await cache.match(self.registration.scope) : undefined);
+  const cached = await cache.match(key);
   if (cached) {
     // A failed background refresh never reaches the page: the cached copy was already answered.
     keepAlive(refresh);
     return cached;
   }
-  // A redirected response cannot answer a navigation: let the browser follow it itself.
-  return refresh.then((response) => (navigation && response.redirected ? fetch(request) : response));
+  return refresh;
 }
 
 // Pinned third-party files (Google Fonts, hls.js@x.y.z): their content never changes for a URL.

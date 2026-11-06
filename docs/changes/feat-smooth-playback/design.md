@@ -18,6 +18,11 @@ service worker original pedía la página con `new Request(url)`, sin ese header
 quedaba sin puente y en el arranque siguiente la app se habría creído un navegador. Los tests unitarios
 no lo ven porque solo pasa dentro del WebView.
 
+**Costo aceptado:** en el primer arranque después de un deploy, la página llega nueva de la red pero
+los scripts y estilos salen todavía del caché viejo; el arranque siguiente ya es todo nuevo. Los
+cambios entre versiones tienen que tolerar esa mezcla (agregar marcado o código, no depender de que
+el otro lado ya cambió).
+
 ## La reconexión no detiene ExoPlayer
 
 **Contexto:** la reconexión llamaba a `native.stop()`, que oculta la vista: pantalla negra en cada corte.

@@ -511,6 +511,8 @@ export function createPlayer(root, {
 
   function playYouTube(url) {
     teardown();
+    // The embed never fires the video's "playing", so nothing else would clear the ring.
+    setLoading(false);
 
     const src = youtubeEmbedUrl(
       url,
@@ -883,8 +885,10 @@ export function createPlayer(root, {
       isError
     );
 
-    // A message to read brings the controls back; clearing one changes nothing on screen.
+    // A message to read brings the controls back. Clearing one does not, but if the controls are up
+    // the idle countdown starts again: rest() skipped hiding them while the message was there.
     if (message) wake();
+    else if (!root.hasAttribute('data-idle')) armIdle();
   }
 
   // Loading never wakes the controls nor keeps them up: a corner indicator, shown only when the
@@ -939,9 +943,11 @@ export function createPlayer(root, {
 
   function wake() {
     root.removeAttribute('data-idle');
+    armIdle();
+  }
 
+  function armIdle() {
     clearTimeout(idleTimer);
-
     idleTimer = setTimeout(rest, IDLE_MS);
   }
 
