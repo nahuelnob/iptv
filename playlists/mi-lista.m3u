@@ -102,10 +102,8 @@ http://45.134.141.161:2200/ARG/TELEFE_HD/index.m3u8
 http://200.91.32.158:8080/telefehdvalle/index.m3u8
 #EXTINF:-1 tvg-id="TelefeInternacional.ar@SD" tvg-logo="https://i.imgur.com/HNcCX3h.png" group-title="Undefined",Telefe Internacional (1080p)
 http://200.115.120.1:8000/play/ca016/index.m3u8
-#EXTINF:-1 tvg-id="TelefeRosario.ar@SD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Telefe_Rosario_%282018%29.png/960px-Telefe_Rosario_%282018%29.png" group-title="Undefined",Telefe Rosario (720p) [Geo-blocked]
-https://smt-usr-edge01.sensa.com.ar/output/ARR2/TelefeRosarioH/playlist.m3u8
-#EXTINF:-1 tvg-id="TelevisionPublica.ar@SD" tvg-logo="https://i.imgur.com/XGrkzN3.png" group-title="General",Television Publica (1080p)
-http://190.128.214.97:64333/play/a008/index.m3u8
+#EXTINF:-1 tvg-id="TelevisionPublica.ar@SD" tvg-logo="https://i.imgur.com/XGrkzN3.png" group-title="General",Television Publica
+https://www.youtube.com/user/TVPublicaArgentina/live
 #EXTINF:-1 tvg-id="TN.ar@SD" tvg-logo="https://i.imgur.com/vFwPhPS.png" group-title="News",TN (1080p)
 http://158.172.155.130:8000/play/a0dp/index.m3u8
 #EXTINF:-1 tvg-id="TNTLatinAmerica.us@Argentina" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/TNT_Logo_2016.svg/960px-TNT_Logo_2016.svg.png" group-title="Undefined",TNT Latin America Argentina (1080p)
