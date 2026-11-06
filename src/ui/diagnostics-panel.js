@@ -2,6 +2,7 @@
 // version, decoder, format, first-frame time and dropped frames, plus the surface switch.
 // The player feeds it events; this module only keeps and renders them.
 import { androidVersionOf, describeFormat, describeDropped, describeCushion, describeCount, SURFACES } from '../domain/diagnostics.js';
+import { describeRates } from '../domain/display-mode.js';
 
 // How often the panel asks the native player for its buffer while it is on screen.
 const STATS_MS = 1000;
@@ -26,7 +27,7 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
   function blank() {
     return {
       native: false, surface: 'texture', startedAt: 0, decoder: '—', format: null, firstFrameMs: null, dropped: 0, last: '—',
-      cushion: null, stalls: 0, retries: 0, lastRetryStatus: null, rejoins: 0,
+      cushion: null, stalls: 0, retries: 0, lastRetryStatus: null, rejoins: 0, fps: null,
     };
   }
 
@@ -42,6 +43,7 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
     if (name === 'format') state.format = data;
     if (name === 'dropped') state.dropped += data.count || 0;
     if (name === 'firstFrame' && state.firstFrameMs === null) state.firstFrameMs = Date.now() - state.startedAt;
+    if (name === 'frameRate') state.fps = data.fps;
     if (name === 'stall') state.stalls += 1;
     if (name === 'rejoin') state.rejoins += 1;
     if (name === 'loadError') {
@@ -79,6 +81,7 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
       ['Formato', describeFormat(state.format)],
       ['Primer cuadro', state.firstFrameMs === null ? 'todavía no' : `${(state.firstFrameMs / 1000).toFixed(1)} s`],
       ['Cuadros perdidos', describeDropped(state.dropped)],
+      ['Video / pantalla', state.native ? describeRates(state.fps, state.cushion && state.cushion.refreshRate) : '—'],
       ['Colchón', state.native ? describeCushion(state.cushion) : '—'],
       ['Trabas', describeCount(state.stalls)],
       ['Reintentos', describeCount(state.retries, state.lastRetryStatus)],

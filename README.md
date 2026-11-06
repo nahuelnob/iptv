@@ -20,8 +20,8 @@ times in a row on **Inicio** (from the fourth press a notice counts down). That 
 where you paste a playlist URL or open an `.m3u` file to try another list until the app restarts: it
 always starts on the own list. With the options on, the player also shows a video diagnostics panel
 (app and Android version, decoder, format, first-frame time, dropped frames; in the app also the
-seconds buffered and behind live, freezes, segment retries with the last HTTP code, and internal
-rejoins) and a button to try the
+seconds buffered and behind live, the video's frame rate against the screen refresh, freezes,
+segment retries with the last HTTP code, and internal rejoins) and a button to try the
 other video surface (TextureView or SurfaceView), which stays chosen on that device. The same gesture
 hides Lista and the panel again and goes back to the own list.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
@@ -108,6 +108,15 @@ that; a bigger cushion is not possible there. What helps is not waiting on a fai
 past the end of the response) after 250 ms, 500 ms, 750 ms and then every second, six times, instead
 of ExoPlayer's 0 / 1 / 2 s and then failing the whole stream into a rejoin. Timeouts keep the default
 policy, so a server that never answers still fails in reasonable time.
+
+Frame-rate matching: TV boxes usually drive the screen at 60 Hz, while many channels are 25, 50 or
+29.97 fps; when the refresh is not a whole multiple of the frame rate the player drops a steady
+trickle of frames. The plugin measures each channel's real frame rate (`FrameRateMeter`: the median
+gap between frame timestamps, since restreams rarely declare it) and the page picks a display mode
+at the same resolution whose refresh is a whole multiple of it (`src/domain/display-mode.js`), for
+example 50 Hz for a 25 fps channel. The TV may blank for a moment while it switches. Zapping keeps a
+matched mode while it still fits; a channel no mode fits, or closing the player, gives the screen
+back its usual mode, so it never stays at 50 Hz for a 59.94 fps channel or for the menus.
 
 ### Offline cache
 
