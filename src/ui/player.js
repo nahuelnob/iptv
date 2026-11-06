@@ -117,6 +117,8 @@ export function createPlayer(root, {
     on('frameRate', data => {
       native.displayModes()
         .then(info => {
+          // The answer can arrive after the player closed: the menus keep the usual mode.
+          if (root.hidden) return;
           const modeId = pickDisplayMode(data.fps, info.modes, info.current, { switched: displaySwitched });
           if (modeId === null) return;
           displaySwitched = modeId !== USUAL_MODE;
