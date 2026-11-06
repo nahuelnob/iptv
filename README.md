@@ -19,7 +19,9 @@ in sight. Changing the list is a developer option: in the side menu, while on In
 times in a row on **Inicio** (from the fourth press a notice counts down). That brings back **Lista**,
 where you paste a playlist URL or open an `.m3u` file to try another list until the app restarts: it
 always starts on the own list. With the options on, the player also shows a video diagnostics panel
-(app and Android version, decoder, format, first-frame time, dropped frames) and a button to try the
+(app and Android version, decoder, format, first-frame time, dropped frames; in the app also the
+seconds buffered and behind live, freezes, segment retries with the last HTTP code, and internal
+rejoins) and a button to try the
 other video surface (TextureView or SurfaceView), which stays chosen on that device. The same gesture
 hides Lista and the panel again and goes back to the own list.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
@@ -98,6 +100,14 @@ Playback in the app: ExoPlayer starts a channel with 1 s buffered and resumes af
 (its defaults are 2.5 s and 5 s), like VLC-based IPTV apps. While a channel reconnects, its last
 frame stays on screen. Loading never brings the controls back: a small ring shows in the corner when
 it lasts more than 0.7 s, and a message appears only from the third reconnect try or on an error.
+
+Freezes while watching: the restreams in the own list publish a live window of only about four 3 s
+segments (~12 s), and ExoPlayer plays ~9 s behind the live edge, so it can never buffer more than
+that; a bigger cushion is not possible there. What helps is not waiting on a failed segment:
+`LiveRetryPolicy` retries a failed playlist or segment (an HTTP error, a dropped connection, a read
+past the end of the response) after 250 ms, 500 ms, 750 ms and then every second, six times, instead
+of ExoPlayer's 0 / 1 / 2 s and then failing the whole stream into a rejoin. Timeouts keep the default
+policy, so a server that never answers still fails in reasonable time.
 
 ### Offline cache
 

@@ -90,7 +90,10 @@ export function createPlayer(root, {
   let hlsUnavailable = false;
   if (!native) loadHls();
 
-  const diag = createDiagnosticsPanel(root, { onSwitchSurface: switchSurface });
+  const diag = createDiagnosticsPanel(root, {
+    onSwitchSurface: switchSurface,
+    readStats: native && typeof native.stats === 'function' ? () => native.stats() : null,
+  });
 
   if (native) {
     // Events carry the id given to play(): late events from a channel already left are ignored.
@@ -98,7 +101,7 @@ export function createPlayer(root, {
       if (current?.native && current.id === data?.id) handler(data, current);
     });
 
-    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error']) {
+    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error', 'stall', 'loadError', 'rejoin']) {
       on(name, data => diag.event(name, data));
     }
 

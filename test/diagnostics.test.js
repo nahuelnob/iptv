@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { androidVersionOf, describeFormat, describeDropped, nextSurface } from '../src/domain/diagnostics.js';
+import { androidVersionOf, describeFormat, describeDropped, nextSurface, describeCushion, describeCount } from '../src/domain/diagnostics.js';
 
 test('the Android version comes from the WebView user-agent; none outside Android', () => {
   assert.equal(androidVersionOf('Mozilla/5.0 (Linux; Android 11; Flow 4K Build/RP1A) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36'), '11');
@@ -25,4 +25,17 @@ test('the surface switch alternates between TextureView and SurfaceView', () => 
   assert.equal(nextSurface('texture'), 'surface');
   assert.equal(nextSurface('surface'), 'texture');
   assert.equal(nextSurface(undefined), 'surface', 'TextureView is the default, so the switch goes to SurfaceView');
+});
+
+test('the cushion reads as seconds buffered ahead and, on live channels, seconds behind live', () => {
+  assert.equal(describeCushion({ bufferedMs: 6240, liveOffsetMs: 9100 }), '6.2 s cargados · 9.1 s detrás del vivo');
+  assert.equal(describeCushion({ bufferedMs: 0, liveOffsetMs: -1 }), '0.0 s cargados', 'not a live channel');
+  assert.equal(describeCushion(null), '—', 'no stats yet');
+});
+
+test('freezes, segment retries and rejoins read as a count, with the last HTTP code when there is one', () => {
+  assert.equal(describeCount(0), 'ninguno');
+  assert.equal(describeCount(1), '1');
+  assert.equal(describeCount(7, 404), '7 (último: 404)');
+  assert.equal(describeCount(2, null), '2');
 });
