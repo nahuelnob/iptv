@@ -2,12 +2,15 @@ package com.nahuelnob.iptv;
 
 import android.graphics.Color;
 import android.net.Uri;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
@@ -32,6 +35,7 @@ import androidx.media3.exoplayer.source.LoadEventInfo;
 import androidx.media3.exoplayer.source.MediaLoadData;
 import androidx.media3.ui.PlayerView;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -138,6 +142,49 @@ public class NativeVideoPlugin extends Plugin {
         return true;
     }
 
+    // Frame-rate matching (src/domain/display-mode.js decides): the screen's modes and the current one.
+    @PluginMethod
+    public void displayModes(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            Display display = display();
+            JSArray modes = new JSArray();
+            for (Display.Mode mode : display.getSupportedModes()) {
+                JSObject item = new JSObject();
+                item.put("id", mode.getModeId());
+                item.put("width", mode.getPhysicalWidth());
+                item.put("height", mode.getPhysicalHeight());
+                item.put("refreshRate", mode.getRefreshRate());
+                modes.put(item);
+            }
+            JSObject data = new JSObject();
+            data.put("current", display.getMode().getModeId());
+            data.put("refreshRate", display.getRefreshRate());
+            data.put("modes", modes);
+            call.resolve(data);
+        });
+    }
+
+    // Asks the system for a display mode (the TV may blank for a moment while it switches). The
+    // preference belongs to this window: leaving the app returns the screen to its usual mode.
+    @PluginMethod
+    public void setDisplayMode(PluginCall call) {
+        int modeId = call.getInt("modeId", 0);
+        getActivity().runOnUiThread(() -> {
+            Window window = getActivity().getWindow();
+            WindowManager.LayoutParams attributes = window.getAttributes();
+            if (attributes.preferredDisplayModeId != modeId) {
+                attributes.preferredDisplayModeId = modeId;
+                window.setAttributes(attributes);
+            }
+            call.resolve();
+        });
+    }
+
+    @SuppressWarnings("deprecation")
+    private Display display() {
+        return getActivity().getWindowManager().getDefaultDisplay();
+    }
+
     // For the diagnostics panel: media buffered ahead and, on a live stream, how far behind the live
     // edge it plays (-1 otherwise). The live window caps the buffer: a freeze is the buffer at zero.
     @PluginMethod
@@ -147,6 +194,7 @@ public class NativeVideoPlugin extends Plugin {
             boolean playing = player != null && url != null;
             data.put("bufferedMs", playing ? player.getTotalBufferedDuration() : 0);
             data.put("liveOffsetMs", playing && player.isCurrentMediaItemLive() ? player.getCurrentLiveOffset() : -1);
+            data.put("refreshRate", display().getRefreshRate());
             call.resolve(data);
         });
     }
@@ -215,6 +263,7 @@ public class NativeVideoPlugin extends Plugin {
             .build();
         player.addListener(listener);
         player.addAnalyticsListener(diagnostics);
+        player.setVideoFrameMetadataListener(frameRateMeter);
 
         // The WebView turns transparent so the video shows through wherever the page paints
         // nothing; the page decides that with its data-native-video state.
@@ -242,6 +291,7 @@ public class NativeVideoPlugin extends Plugin {
 
     private void load(boolean asHls) {
         wasReady = false;
+        frameRateMeter.reset();
         MediaItem.Builder item = new MediaItem.Builder().setUri(Uri.parse(url));
         if (asHls) item.setMimeType(MimeTypes.APPLICATION_M3U8);
         player.setMediaItem(item.build());
@@ -330,6 +380,14 @@ public class NativeVideoPlugin extends Plugin {
 
     // Diagnostics for "sound but no picture" on TV boxes: which decoder runs, the stream's real
     // format, and how many frames are dropped (late frames are discarded while the audio goes on).
+    // The real frame rate, measured once per stream, for frame-rate matching and the panel.
+    private final FrameRateMeter frameRateMeter = new FrameRateMeter(fps -> getActivity().runOnUiThread(() -> {
+        if (url == null) return;
+        JSObject data = new JSObject();
+        data.put("fps", fps);
+        emit("frameRate", data);
+    }));
+
     private final AnalyticsListener diagnostics = new AnalyticsListener() {
         @Override
         public void onVideoDecoderInitialized(

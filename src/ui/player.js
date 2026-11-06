@@ -5,6 +5,7 @@ import { monogram } from '../domain/monogram.js';
 import { logoImage } from './logo-image.js';
 import { neighborChannel, windowAround } from '../domain/zapping.js';
 import { startSession, markPlaying, nextReconnect } from '../domain/reconnect.js';
+import { pickDisplayMode } from '../domain/display-mode.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
@@ -101,12 +102,23 @@ export function createPlayer(root, {
       if (current?.native && current.id === data?.id) handler(data, current);
     });
 
-    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error', 'stall', 'loadError', 'rejoin']) {
+    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error', 'stall', 'loadError', 'rejoin', 'frameRate']) {
       on(name, data => diag.event(name, data));
     }
 
     on('buffering', () => {
       setLoading(true);
+    });
+
+    // Frame-rate matching: once the plugin has measured the channel's real frame rate, ask the
+    // screen for a refresh that is a whole multiple of it (src/domain/display-mode.js decides).
+    on('frameRate', data => {
+      native.displayModes()
+        .then(info => {
+          const modeId = pickDisplayMode(data.fps, info.modes, info.current);
+          if (modeId !== null) return native.setDisplayMode({ modeId });
+        })
+        .catch(() => {});
     });
 
     on('playing', (_data, attempt) => {
