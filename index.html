@@ -136,6 +136,17 @@
     </aside>
   </div>
 
+  <!-- Android app only: Back on the first screen asks before leaving (src/ui/exit-prompt.js). -->
+  <div class="update" data-exit data-nav-scope hidden role="dialog" aria-modal="true" aria-labelledby="exit-title">
+    <div class="panel update__card">
+      <h2 id="exit-title">¿Salir de Nodo?</h2>
+      <div class="actions">
+        <button class="button button--primary" type="button" data-nav data-exit-stay>Quedarme</button>
+        <button class="button" type="button" data-nav data-exit-leave>Salir</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Android app only: offered when a newer APK is published (src/ui/update-prompt.js). -->
   <div class="update" data-update data-nav-scope hidden role="dialog" aria-modal="true"
        aria-labelledby="update-title" aria-describedby="update-text">

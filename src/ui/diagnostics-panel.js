@@ -1,7 +1,7 @@
 // Video diagnostics in the player, shown only with the developer options on: app and Android
 // version, decoder, format, first-frame time and dropped frames, plus the surface switch.
 // The player feeds it events; this module only keeps and renders them.
-import { androidVersionOf, describeFormat, describeDropped, describeCushion, describeCount, SURFACES } from '../domain/diagnostics.js';
+import { androidVersionOf, describeFormat, describeDropped, describeCushion, describeCount, lastErrorLabel, SURFACES } from '../domain/diagnostics.js';
 import { describeRates } from '../domain/display-mode.js';
 
 // How often the panel asks the native player for its buffer while it is on screen.
@@ -27,7 +27,7 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
   function blank() {
     return {
       native: false, surface: 'texture', startedAt: 0, decoder: '—', format: null, firstFrameMs: null, dropped: 0, last: '—',
-      cushion: null, stalls: 0, retries: 0, lastRetryStatus: null, rejoins: 0, fps: null,
+      cushion: null, stalls: 0, retries: 0, lastRetry: null, rejoins: 0, skips: 0, fps: null,
     };
   }
 
@@ -46,9 +46,10 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
     if (name === 'frameRate') state.fps = data.fps;
     if (name === 'stall') state.stalls += 1;
     if (name === 'rejoin') state.rejoins += 1;
+    if (name === 'skip') state.skips += 1;
     if (name === 'loadError') {
       state.retries += 1;
-      if (data.status) state.lastRetryStatus = data.status;
+      state.lastRetry = lastErrorLabel(data.status, data.kind) || state.lastRetry;
     }
     state.last = `${name}${data.status ? ` ${data.status}` : ''}${data.message ? ` ${data.message}` : ''} · ${elapsed}`;
     render();
@@ -84,8 +85,9 @@ export function createDiagnosticsPanel(root, { onSwitchSurface = () => {}, readS
       ['Video / pantalla', state.native ? describeRates(state.fps, state.cushion && state.cushion.refreshRate) : '—'],
       ['Colchón', state.native ? describeCushion(state.cushion) : '—'],
       ['Trabas', describeCount(state.stalls)],
-      ['Reintentos', describeCount(state.retries, state.lastRetryStatus)],
+      ['Reintentos', describeCount(state.retries, state.lastRetry)],
       ['Reconexiones', describeCount(state.rejoins)],
+      ['Segmentos salteados', describeCount(state.skips)],
       ['Último evento', state.last],
     ];
     rows.replaceChildren(...entries.flatMap(([term, value]) => {

@@ -21,7 +21,8 @@ where you paste a playlist URL or open an `.m3u` file to try another list until 
 always starts on the own list. With the options on, the player also shows a video diagnostics panel
 (app and Android version, decoder, format, first-frame time, dropped frames; in the app also the
 seconds buffered and behind live, the video's frame rate against the screen refresh, freezes,
-segment retries with the last HTTP code, and internal rejoins) and a button to try the
+segment retries with the last HTTP code and whether it was the channel list or a segment, internal
+rejoins and skipped segments) and a button to try the
 other video surface (TextureView or SurfaceView), which stays chosen on that device. The same gesture
 hides Lista and the panel again and goes back to the own list.
 Use only playlists you have the right to watch. The interface is in Argentine Spanish.
@@ -75,6 +76,9 @@ YouTube channels play through YouTube's official embed. Channels listed by name
 The APK is a shell around the site GitHub Pages publishes from `main`
 (`capacitor.config.json` → `server.url`), plus native plugins: ExoPlayer playback (`NativeVideoPlugin`)
 and in-app updates (`AppUpdatePlugin`). Without internet it shows the bundled `offline.html`.
+Back on the first screen asks "¿Salir de Nodo?" (focus on "Quedarme") instead of closing the app, and
+the screen stays on while a channel plays (the video is under the WebView, so Android would otherwise
+start its screensaver).
 
 Install it once (Downloader, or any browser on the TV) from the latest release:
 `https://github.com/nahuelnob/iptv/releases/latest/download/nodo.apk`
@@ -108,6 +112,12 @@ that; a bigger cushion is not possible there. What helps is not waiting on a fai
 past the end of the response) after 250 ms, 500 ms, 750 ms and then every second, six times, instead
 of ExoPlayer's 0 / 1 / 2 s and then failing the whole stream into a rejoin. Timeouts keep the default
 policy, so a server that never answers still fails in reasonable time.
+
+A segment the server answers 404/410 for and never publishes: Media3 keeps retrying it while playback
+uses up the whole buffer, and fails only when playback reaches the hole. The plugin then seeks just
+past that segment (only that piece is lost) instead of rejoining the live edge, which would skip
+everything buffered; when the target is no longer in the live window it rejoins as before. A channel
+list that stops updating is not touched: rejoining early would only bring the freeze forward.
 
 Frame-rate matching: TV boxes usually drive the screen at 60 Hz, while many channels are 25, 50 or
 29.97 fps; when the refresh is not a whole multiple of the frame rate the player drops a steady

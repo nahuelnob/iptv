@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { androidVersionOf, describeFormat, describeDropped, nextSurface, describeCushion, describeCount } from '../src/domain/diagnostics.js';
+import { androidVersionOf, describeFormat, describeDropped, nextSurface, describeCushion, describeCount, lastErrorLabel } from '../src/domain/diagnostics.js';
 
 test('the Android version comes from the WebView user-agent; none outside Android', () => {
   assert.equal(androidVersionOf('Mozilla/5.0 (Linux; Android 11; Flow 4K Build/RP1A) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36'), '11');
@@ -38,4 +38,12 @@ test('freezes, segment retries and rejoins read as a count, with the last HTTP c
   assert.equal(describeCount(1), '1');
   assert.equal(describeCount(7, 404), '7 (último: 404)');
   assert.equal(describeCount(2, null), '2');
+});
+
+test('a failed load reads as its HTTP code and whether it was the channel list or a segment', () => {
+  assert.equal(lastErrorLabel(404, 'lista'), '404 lista');
+  assert.equal(lastErrorLabel(404, 'segmento'), '404 segmento');
+  assert.equal(lastErrorLabel(503, 'otro'), '503');
+  assert.equal(lastErrorLabel(null, 'segmento'), 'segmento', 'no HTTP code: a dropped connection');
+  assert.equal(lastErrorLabel(null, null), null);
 });

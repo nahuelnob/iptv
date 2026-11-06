@@ -37,6 +37,14 @@ export function describeCount(count, lastStatus = null) {
   return lastStatus ? `${count} (último: ${lastStatus})` : String(count);
 }
 
+// What the last failed load was: its HTTP code and whether it was the channel's list ("lista": the
+// whole stream stalls until it comes back) or a segment ("segmento": one piece that may be skipped).
+export function lastErrorLabel(status, kind) {
+  const where = kind === 'lista' || kind === 'segmento' ? kind : null;
+  const parts = [status || null, where].filter(Boolean);
+  return parts.length ? parts.join(' ') : null;
+}
+
 // TextureView is the default (SurfaceView left the B866V2 black); the switch tries the other one.
 export function nextSurface(current) {
   return current === 'surface' ? 'texture' : 'surface';
