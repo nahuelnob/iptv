@@ -5,7 +5,7 @@ import { monogram } from '../domain/monogram.js';
 import { logoImage } from './logo-image.js';
 import { neighborChannel, windowAround } from '../domain/zapping.js';
 import { startSession, markPlaying, nextReconnect } from '../domain/reconnect.js';
-import { pickDisplayMode } from '../domain/display-mode.js';
+import { pickDisplayMode, USUAL_MODE } from '../domain/display-mode.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
@@ -86,6 +86,8 @@ export function createPlayer(root, {
   let nativeSeq = 0;
   // ExoPlayer holds a stream (playing, or failed and waiting to reconnect with its last frame shown).
   let nativeActive = false;
+  // The app asked the screen for a mode matching a channel's frame rate; closing gives it back.
+  let displaySwitched = false;
 
   // Browsers play HLS with hls.js: start fetching it now. The Android app never needs it.
   let hlsUnavailable = false;
@@ -115,8 +117,10 @@ export function createPlayer(root, {
     on('frameRate', data => {
       native.displayModes()
         .then(info => {
-          const modeId = pickDisplayMode(data.fps, info.modes, info.current);
-          if (modeId !== null) return native.setDisplayMode({ modeId });
+          const modeId = pickDisplayMode(data.fps, info.modes, info.current, { switched: displaySwitched });
+          if (modeId === null) return;
+          displaySwitched = modeId !== USUAL_MODE;
+          return native.setDisplayMode({ modeId });
         })
         .catch(() => {});
     });
@@ -813,6 +817,12 @@ export function createPlayer(root, {
 
     teardown();
     setLoading(false);
+
+    // The menus go back to the screen's usual mode (switching channels keeps the matched one).
+    if (displaySwitched) {
+      displaySwitched = false;
+      native.setDisplayMode({ modeId: USUAL_MODE }).catch(() => {});
+    }
     setStatus(null);
 
     root.hidden = true;

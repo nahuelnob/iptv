@@ -12,9 +12,14 @@ const IN_STEP = 0.0005;
 const STANDARD_RATES = [23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60];
 const SNAP = 0.01;
 
-// modes: [{ id, width, height, refreshRate }]; currentId: the mode the screen is in now.
-// Returns the id of the mode to switch to, or null to leave the screen as it is.
-export function pickDisplayMode(fps, modes, currentId) {
+// Mode id that releases the app's preference: the screen goes back to its usual mode.
+export const USUAL_MODE = 0;
+
+// modes: [{ id, width, height, refreshRate }]; currentId: the mode the screen is in now;
+// switched: the app changed the mode earlier (for another channel).
+// Returns the id of the mode to switch to, USUAL_MODE to give the screen back its usual mode, or
+// null to leave it as it is.
+export function pickDisplayMode(fps, modes, currentId, { switched = false } = {}) {
   const rate = snapRate(fps);
   if (!rate) return null;
 
@@ -23,7 +28,9 @@ export function pickDisplayMode(fps, modes, currentId) {
 
   const candidates = modes.filter((mode) =>
     mode.width === current.width && mode.height === current.height && inStep(mode.refreshRate, rate));
-  if (!candidates.length) return null;
+  // No mode fits: a mode the app chose for another channel (50 Hz for a 25 fps one) may fit this
+  // one far worse than the usual 60 Hz, so give the usual mode back.
+  if (!candidates.length) return switched ? USUAL_MODE : null;
 
   // The closest refresh to the current one: 25 fps on a 60 Hz screen goes to 50 Hz, not 25 Hz.
   candidates.sort((a, b) =>

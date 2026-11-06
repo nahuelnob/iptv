@@ -164,8 +164,9 @@ public class NativeVideoPlugin extends Plugin {
         });
     }
 
-    // Asks the system for a display mode (the TV may blank for a moment while it switches). The
-    // preference belongs to this window: leaving the app returns the screen to its usual mode.
+    // Asks the system for a display mode (the TV may blank for a moment while it switches); modeId 0
+    // drops the preference and gives the screen back its usual mode. The preference belongs to this
+    // window: leaving the app also returns the screen to its usual mode.
     @PluginMethod
     public void setDisplayMode(PluginCall call) {
         int modeId = call.getInt("modeId", 0);

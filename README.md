@@ -114,8 +114,9 @@ Frame-rate matching: TV boxes usually drive the screen at 60 Hz, while many chan
 trickle of frames. The plugin measures each channel's real frame rate (`FrameRateMeter`: the median
 gap between frame timestamps, since restreams rarely declare it) and the page picks a display mode
 at the same resolution whose refresh is a whole multiple of it (`src/domain/display-mode.js`), for
-example 50 Hz for a 25 fps channel. The TV may blank for a moment while it switches; the mode stays
-while the app is in front.
+example 50 Hz for a 25 fps channel. The TV may blank for a moment while it switches. Zapping keeps a
+matched mode while it still fits; a channel no mode fits, or closing the player, gives the screen
+back its usual mode, so it never stays at 50 Hz for a 59.94 fps channel or for the menus.
 
 ### Offline cache
 
