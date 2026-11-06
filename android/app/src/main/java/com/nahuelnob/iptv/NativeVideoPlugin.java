@@ -70,6 +70,8 @@ public class NativeVideoPlugin extends Plugin {
     private static final int TIMEOUT_MS = 15_000;
     // Consecutive network failures rejoined before giving up; reset whenever playback resumes.
     private static final int MAX_REJOINS = 3;
+    // Lost segments skipped in a row before the error goes on as before; reset whenever playback resumes.
+    private static final int MAX_SKIPS = 3;
     // How long a channel waits for its video surface before loading anyway, and how often it checks.
     private static final long SURFACE_WAIT_MS = 1_000;
     private static final long SURFACE_POLL_MS = 16;
@@ -93,6 +95,8 @@ public class NativeVideoPlugin extends Plugin {
     private boolean wasReady;
     // End (in period time) of the last segment the server answered 404/410 for, until it loads.
     private long lostSegmentEndMs = C.TIME_UNSET;
+    // Lost segments skipped in a row without playback resuming in between (capped by MAX_SKIPS).
+    private int skips;
 
     @PluginMethod
     public void play(PluginCall call) {
@@ -114,6 +118,7 @@ public class NativeVideoPlugin extends Plugin {
             id = requestedId;
             forcedHls = false;
             rejoins = 0;
+            skips = 0;
             // The view first, then the stream once its surface exists. Loading first let some decoders
             // (an Android 11 Flow deco) configure before the surface arrived: green, garbled video until
             // the channel was switched away and back.
@@ -334,6 +339,7 @@ public class NativeVideoPlugin extends Plugin {
             keepScreenOn(isPlaying);
             if (!isPlaying) return;
             rejoins = 0;
+            skips = 0;
             emit("playing", new JSObject());
         }
 
@@ -471,9 +477,11 @@ public class NativeVideoPlugin extends Plugin {
     };
 
     // Seeks just past the last lost segment when it is still inside the live window and ahead of the
-    // playback position. False when there is nothing safe to skip to: the caller then rejoins as before.
+    // playback position. False when there is nothing safe to skip to, or after MAX_SKIPS skips with no
+    // playback in between (a server publishing no segments at all): the caller then rejoins or reports
+    // the error to the page as before, instead of skipping forever behind a spinner.
     private boolean skipLostSegment() {
-        if (lostSegmentEndMs == C.TIME_UNSET) return false;
+        if (lostSegmentEndMs == C.TIME_UNSET || skips >= MAX_SKIPS) return false;
         Timeline timeline = player.getCurrentTimeline();
         if (timeline.isEmpty()) return false;
 
@@ -483,7 +491,10 @@ public class NativeVideoPlugin extends Plugin {
         lostSegmentEndMs = C.TIME_UNSET;
         if (duration == C.TIME_UNSET || target <= player.getCurrentPosition() || target >= duration) return false;
 
-        player.seekTo(target);
+        // 1 ms past the end: both times are rounded down to milliseconds, and landing exactly on the
+        // boundary could pick the missing segment again.
+        skips++;
+        player.seekTo(target + 1);
         player.prepare();
         return true;
     }
