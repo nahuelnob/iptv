@@ -32,7 +32,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800;900&display=swap">
   <link rel="stylesheet" href="styles/tokens.css">
   <link rel="stylesheet" href="styles/app.css">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js" defer></script>
   <script src="src/main.js" type="module"></script>
 </head>
 <body>
@@ -111,6 +110,8 @@
       <span class="player__no" data-player-no></span><b id="player-title" data-player-name></b><span class="player__meta" data-player-meta></span>
       <button class="star" type="button" data-nav data-player-fav aria-pressed="false" aria-label="Agregar a favoritos"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
     </div>
+    <!-- Loading: a corner ring that never brings the controls back; shown only when the wait lasts. -->
+    <div class="player__loading" data-player-loading role="status" hidden><span class="visually-hidden">Cargando</span></div>
     <div class="player__notices">
       <p class="player__notice" data-player-notice role="status" hidden></p>
       <p class="player__status" data-player-status role="status" aria-live="polite" hidden></p>

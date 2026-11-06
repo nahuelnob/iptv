@@ -2,6 +2,7 @@
 // Tiles carry data-index (position in the loaded list) so the container can map them back to channels.
 import { monogram } from '../domain/monogram.js';
 import { parseYouTubeUrl } from '../domain/youtube.js';
+import { logoImage } from './logo-image.js';
 
 const QUALITY_LABELS = { sd: 'SD' };
 
@@ -85,22 +86,14 @@ function shadeOf(name) {
   return [...name].reduce((hash, ch) => (hash * 31 + ch.codePointAt(0)) >>> 0, 7) % 3;
 }
 
+// The monogram stays until the logo can really paint (see logo-image.js). 330 px: a tile is about
+// 400 device px wide on a 1080p TV, and the logo takes most of it.
 function renderLogo(src, tile) {
-  const img = document.createElement('img');
-  img.className = 'tile__logo';
-  img.src = src;
-  img.alt = '';
-  img.loading = 'lazy';
-  img.decoding = 'async';
-  img.referrerPolicy = 'no-referrer';
-  // Broken logos are common in public lists: the monogram stays until a logo can really paint.
-  // "load" fires before a huge logo (some are 3840px wide) is decoded; swapping then left blank tiles.
-  img.addEventListener('load', () => {
-    const decoded = typeof img.decode === 'function' ? img.decode() : Promise.resolve();
-    decoded.then(() => tile.classList.add('tile--logo'), () => img.remove());
-  }, { once: true });
-  img.addEventListener('error', () => img.remove(), { once: true });
-  return img;
+  return logoImage(src, {
+    className: 'tile__logo',
+    width: 330,
+    onShow: () => tile.classList.add('tile--logo'),
+  });
 }
 
 function appendHighlighted(target, text, match) {

@@ -15,6 +15,7 @@ import { isBack } from './ui/keys.js';
 import { enableSpatialNav, focusElement, isVisible } from './ui/spatial-nav.js';
 import { connectNativeBack } from './infra/native-back.js';
 import { checkForUpdate } from './infra/app-update.js';
+import { registerServiceWorker } from './infra/service-worker.js';
 import { createUpdatePrompt } from './ui/update-prompt.js';
 import { nextTap, tapHint } from './domain/dev-mode.js';
 import { isDevMode, saveDevMode } from './infra/dev-mode-store.js';
@@ -623,3 +624,6 @@ setTimeout(async () => {
   const update = await checkForUpdate();
   if (update && !player.isOpen()) updatePrompt.open(update);
 }, UPDATE_CHECK_DELAY_MS);
+
+// Next launches open the app, the list and the logos from the device (published site only).
+registerServiceWorker();

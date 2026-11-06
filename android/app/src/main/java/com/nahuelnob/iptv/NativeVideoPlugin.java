@@ -24,6 +24,7 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.HttpDataSource;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
@@ -63,6 +64,11 @@ public class NativeVideoPlugin extends Plugin {
     // How long a channel waits for its video surface before loading anyway, and how often it checks.
     private static final long SURFACE_WAIT_MS = 1_000;
     private static final long SURFACE_POLL_MS = 16;
+    // Media buffered before playback starts, and before it resumes after a stall. ExoPlayer's defaults
+    // (2.5 s and 5 s) made every channel start feel slow; VLC-based IPTV apps start with about 1 s
+    // (--live-caching=1000). A shorter start may stall more on a bad stream, which then rejoins.
+    private static final int START_BUFFER_MS = 1_000;
+    private static final int RESUME_BUFFER_MS = 2_000;
 
     private ExoPlayer player;
     private PlayerView view;
@@ -88,6 +94,9 @@ public class NativeVideoPlugin extends Plugin {
         getActivity().runOnUiThread(() -> {
             ensurePlayer();
             ensureView(surface);
+            // A play() without stop() in between is the page reconnecting the same channel: the last
+            // frame stays on screen instead of going black until the new stream draws. stop() clears it.
+            view.setKeepContentOnPlayerReset(true);
             url = requested;
             id = requestedId;
             forcedHls = false;
@@ -129,6 +138,8 @@ public class NativeVideoPlugin extends Plugin {
         getActivity().runOnUiThread(() -> {
             url = null;
             loadToken++;
+            // Leaving the channel: its last frame must not show under the next one.
+            if (view != null) view.setKeepContentOnPlayerReset(false);
             if (player != null) {
                 player.stop();
                 player.clearMediaItems();
@@ -172,8 +183,17 @@ public class NativeVideoPlugin extends Plugin {
         DefaultRenderersFactory renderers = new DefaultRenderersFactory(getContext())
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
 
+        DefaultLoadControl buffers = new DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
+                DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
+                START_BUFFER_MS,
+                RESUME_BUFFER_MS)
+            .build();
+
         player = new ExoPlayer.Builder(getContext(), renderers)
             .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
+            .setLoadControl(buffers)
             .build();
         player.addListener(listener);
         player.addAnalyticsListener(diagnostics);

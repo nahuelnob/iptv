@@ -58,7 +58,11 @@ YouTube channels play through YouTube's official embed. Channels listed by name
 | `src/ui/back-stack.js` | Back for the browse layer through history, so the TV Back key works. |
 | `src/ui/section-nav.js` | Side rail, breadcrumb and the menu/categories drawer. |
 | `src/ui/tiles.js` | Channel tiles of the mosaic (presentational). |
-| `src/ui/player.js` | Full-screen player: hls.js, native HLS fallback, YouTube embed, ▲ ▼ zapping. |
+| `src/domain/logo-url.js` | Asks Wikimedia for logo thumbnails at the size on screen (other hosts keep their URL). |
+| `src/ui/logo-image.js` | Logos for the grid and the player column: loaded only near the screen, monogram until they paint. |
+| `src/ui/player.js` | Full-screen player: hls.js, native HLS fallback, YouTube embed, channel column, quiet loading. |
+| `src/infra/hls-loader.js` | Loads hls.js on demand: browsers only, the Android app plays in ExoPlayer. |
+| `src/sw/` | Service worker and its routing rules (see "Offline cache" below). |
 | `src/domain/app-version.js` | Release tag → Android version code, and whether a release is newer. |
 | `src/infra/app-update.js` | Android app: asks GitHub for the latest release and installs it. |
 | `src/ui/update-prompt.js` | Android app: the "new version" dialog. |
@@ -76,8 +80,9 @@ Install it once (Downloader, or any browser on the TV) from the latest release:
 After that:
 
 - **Web changes** (`index.html`, `src/`, `styles/`): push to `main`. The Pages workflow
-  (`.github/workflows/pages.yml`) runs the tests, builds the site and publishes it; the TV picks it
-  up the next time the app starts (GitHub Pages caches for up to ~10 minutes).
+  (`.github/workflows/pages.yml`) runs the tests, builds the site and publishes it; the TV downloads
+  it the next time the app starts and shows it on the start after that (see "Offline cache"; GitHub
+  Pages also caches for up to ~10 minutes).
 - **Native changes** (`android/`, Capacitor plugins or config): bump `version` in `package.json`,
   commit and push `main`, then run `npm run release:android -- --notes "What changed"`. It builds
   the signed APK and publishes the `v<version>` GitHub release. On its next start the app offers the
@@ -88,6 +93,23 @@ Releases are signed with the release key: `android/keystore.properties` (gitigno
 keystore outside the repo. **Back up both.** Android only installs an update signed with the same
 key, so without them the app has to be uninstalled and installed again. `--dry-run` builds the APK
 into `dist/` without publishing.
+
+Playback in the app: ExoPlayer starts a channel with 1 s buffered and resumes after a stall with 2 s
+(its defaults are 2.5 s and 5 s), like VLC-based IPTV apps. While a channel reconnects, its last
+frame stays on screen. Loading never brings the controls back: a small ring shows in the corner when
+it lasts more than 0.7 s, and a message appears only from the third reconnect try or on an error.
+
+### Offline cache
+
+The published site registers a service worker (`src/sw/`, built into `site/sw.js`; never on
+localhost, so `npm start` always serves the source). The page itself comes from the network first,
+because inside the app Capacitor injects its bridge (`window.Capacitor`, which turns on ExoPlayer)
+into the HTML it proxies; the cached page answers only offline. The scripts, styles and the playlist
+answer from the device at once and refresh in the background, so **a deploy shows up on the launch
+after the one that downloaded it**. Google Fonts and hls.js are cached once; logos go to their own
+cache (300 entries) and survive deploys. Streams, proxies and the update check are never touched.
+Every build stamps `sw.js` with a hash of the site, so any change installs a new worker and clears
+the old caches.
 
 ## Known browser limits
 
