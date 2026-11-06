@@ -248,6 +248,15 @@ html[data-native-video] .player__video { display: none; }
 .player__notices { position: absolute; top: calc(var(--safe-y) + 3.6rem); left: calc(var(--safe-x) + var(--column-w) + var(--space-5)); display: grid; justify-items: start; gap: var(--space-2); max-width: 34rem; }
 .player__notice { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-fg); }
 .player__status { margin: 0; padding: var(--space-3) var(--space-5); border-radius: var(--radius-sm); background: var(--overlay-pill); color: var(--n-5); }
+/* App (owner request): loading is a quiet ring in the corner, over the video, never the whole UI. */
+.player__loading {
+  position: absolute; top: var(--safe-y); right: var(--safe-x);
+  width: 2.75rem; height: 2.75rem; box-sizing: border-box; border-radius: 50%;
+  border: 4px solid rgb(245 244 240 / 0.25); border-top-color: var(--n-6);
+  background: var(--overlay-pill);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 .player__status--error { background: var(--danger-bg); box-shadow: inset 4px 0 0 var(--danger-fg); color: var(--danger-fg); }
 /* App (owner request): a vertical column, so ▲ ▼ move the way the list is drawn. The channel on screen
    is the inverted row; the cursor carries the focus ring and an OK chip until OK switches to it. */
@@ -279,7 +288,11 @@ html[data-native-video] .player__video { display: none; }
 .mini:focus { outline: var(--focus-ring); outline-offset: 3px; }
 .mini[aria-current="true"] { background: var(--n-6); color: var(--n-0); }
 .mini__no { flex: none; width: 2.2rem; color: var(--n-4); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
-.mini__mono { flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); background: var(--n-2); color: var(--n-6); font-weight: var(--weight-heading); }
+.mini__mono { position: relative; flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); background: var(--n-2); color: var(--n-6); font-weight: var(--weight-heading); }
+/* App (owner request): the channel's logo inside the monogram box, once it has loaded. */
+.mini__logo { position: absolute; top: 3px; left: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain; opacity: 0; }
+.mini__mono--logo .mini__logo { opacity: 1; }
+.mini__mono--logo .mini__letters { visibility: hidden; }
 .mini__text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .mini__name { overflow: hidden; font-weight: var(--weight-ui); line-height: var(--leading-ui); text-overflow: ellipsis; white-space: nowrap; }
 .mini__sub { color: var(--n-4); font-size: var(--text-sm); }

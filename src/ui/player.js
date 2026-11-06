@@ -2,12 +2,14 @@ import { isBack, browseStepOf, channelStepOf, directionOf } from './keys.js';
 import { focusElement } from './spatial-nav.js';
 import { qualityLabel } from './tiles.js';
 import { monogram } from '../domain/monogram.js';
+import { logoImage } from './logo-image.js';
 import { neighborChannel, windowAround } from '../domain/zapping.js';
 import { startSession, markPlaying, nextReconnect } from '../domain/reconnect.js';
 import { parseYouTubeUrl, youtubeEmbedUrl } from '../domain/youtube.js';
 import { KNOWN_YOUTUBE_CHANNELS } from '../data/youtube-channels.js';
 import { devProxyAvailable, devProxyUrl } from '../infra/dev-proxy.js';
 import { nativeVideo } from '../infra/native-video.js';
+import { loadHls } from '../infra/hls-loader.js';
 import { savedSurface, saveSurface } from '../infra/video-surface-store.js';
 import { nextSurface } from '../domain/diagnostics.js';
 import { createDiagnosticsPanel } from './diagnostics-panel.js';
@@ -20,6 +22,10 @@ const PHONE_ROWS = 3;
 const PHONE = '(max-width: 720px)';
 const SWITCH_HINT = 'Elegí otro canal con ▲ ▼ y OK.';
 const IDLE_MS = 4000;
+// Loading shows as a small corner indicator, and only when it lasts: short buffers go unseen.
+const LOADING_DELAY_MS = 700;
+// Reconnect tries before this one stay quiet (indicator only); from it on, a message says so.
+const LOUD_RECONNECT_ATTEMPT = 3;
 const CLOSE_FALLBACK_MS = 600;
 const GENERIC_CAUSE = 'La señal no responde o el navegador no la admite.';
 const NO_PICTURE =
@@ -45,6 +51,7 @@ export function createPlayer(root, {
   const meta = root.querySelector('[data-player-meta]');
   const notice = root.querySelector('[data-player-notice]');
   const status = root.querySelector('[data-player-status]');
+  const loading = root.querySelector('[data-player-loading]');
   const stripList = root.querySelector('[data-strip-list]');
   const stripPos = root.querySelector('[data-strip-pos]');
   const favoriteButton = root.querySelector('[data-player-fav]');
@@ -76,6 +83,12 @@ export function createPlayer(root, {
   // Android app only: null in a browser.
   const native = nativeVideo();
   let nativeSeq = 0;
+  // ExoPlayer holds a stream (playing, or failed and waiting to reconnect with its last frame shown).
+  let nativeActive = false;
+
+  // Browsers play HLS with hls.js: start fetching it now. The Android app never needs it.
+  let hlsUnavailable = false;
+  if (!native) loadHls();
 
   const diag = createDiagnosticsPanel(root, { onSwitchSurface: switchSurface });
 
@@ -89,12 +102,13 @@ export function createPlayer(root, {
       on(name, data => diag.event(name, data));
     }
 
-    on('buffering', (_data, attempt) => {
-      setStatus(attempt.noPicture ? NO_PICTURE : 'Cargando…');
+    on('buffering', () => {
+      setLoading(true);
     });
 
     on('playing', (_data, attempt) => {
       session = markPlaying(session, Date.now());
+      setLoading(false);
       setStatus(attempt.noPicture ? NO_PICTURE : null);
     });
 
@@ -209,6 +223,7 @@ export function createPlayer(root, {
   video.addEventListener('playing', () => {
     if (current) diag.event('playing');
     if (current) session = markPlaying(session, Date.now());
+    setLoading(false);
     setStatus(current?.noPicture ? NO_PICTURE : null);
   });
 
@@ -222,7 +237,7 @@ export function createPlayer(root, {
   });
 
   video.addEventListener('waiting', () => {
-    setStatus(current?.noPicture ? NO_PICTURE : 'Cargando…');
+    if (current) setLoading(true);
   });
 
   function open(selected, browsingList = [selected]) {
@@ -259,7 +274,8 @@ export function createPlayer(root, {
     teardown();
     show(next);
 
-    setStatus(`Conectando con ${next.name}…`);
+    setStatus(null);
+    setLoading(true);
 
     clearTimeout(zapTimer);
 
@@ -345,9 +361,21 @@ export function createPlayer(root, {
         no.className = 'mini__no';
         no.textContent = numberOf(neighbor);
 
+        // The channel's logo in the monogram's box once it can paint; the letters stay otherwise.
         const mono = document.createElement('b');
         mono.className = 'mini__mono';
-        mono.textContent = monogram(neighbor.name);
+        const letters = document.createElement('span');
+        letters.className = 'mini__letters';
+        letters.textContent = monogram(neighbor.name);
+        mono.append(letters);
+
+        if (neighbor.logo) {
+          mono.append(logoImage(neighbor.logo, {
+            className: 'mini__logo',
+            width: 120,
+            onShow: () => mono.classList.add('mini__mono--logo'),
+          }));
+        }
 
         const text = document.createElement('span');
         text.className = 'mini__text';
@@ -400,8 +428,10 @@ export function createPlayer(root, {
     }
   }
 
-  function playNative(url) {
-    teardown();
+  // keepPicture: reconnecting the same channel, so ExoPlayer is not stopped and its last frame stays.
+  function playNative(url, { keepPicture = false } = {}) {
+    teardown({ keepNative: keepPicture });
+    nativeActive = true;
 
     const attempt = {
       url,
@@ -415,7 +445,7 @@ export function createPlayer(root, {
     document.documentElement.setAttribute('data-native-video', '');
     video.hidden = true;
 
-    setStatus(`Conectando con ${channel.name}…`);
+    setLoading(true);
 
     // The surface chosen for this device in the diagnostics panel (TextureView unless changed).
     const surface = savedSurface();
@@ -565,11 +595,7 @@ export function createPlayer(root, {
 
     current = attempt;
 
-    setStatus(
-      viaProxy
-        ? 'Reintentando mediante el proxy local…'
-        : `Conectando con ${channel.name}…`
-    );
+    setLoading(true);
 
     // Detectar HLS usando la URL original.
     let isHls = false;
@@ -580,6 +606,15 @@ export function createPlayer(root, {
       );
     } catch {
       isHls = /\.m3u8(?:[?#]|$)/i.test(originUrl);
+    }
+
+    // hls.js loads on demand (src/infra/hls-loader.js): wait for it once, then play again.
+    if (isHls && !window.Hls && !hlsUnavailable) {
+      loadHls().then(found => {
+        if (!found) hlsUnavailable = true;
+        if (current === attempt) play(url, { viaProxy });
+      });
+      return;
     }
 
     const Hls = window.Hls;
@@ -702,8 +737,9 @@ export function createPlayer(root, {
     }
 
     const target = channel;
+    // In the Android app the failed stream keeps its last frame on screen during the wait.
     const again = attempt.native
-      ? () => playNative(attempt.url)
+      ? () => playNative(attempt.url, { keepPicture: true })
       : () => play(attempt.url, { viaProxy: attempt.viaProxy });
 
     const retry = () => {
@@ -711,13 +747,15 @@ export function createPlayer(root, {
       again();
     };
 
-    teardown();
+    teardown({ keepNative: attempt.native });
 
-    setStatus(
-      next.limit > 1
-        ? `Se cortó la señal de ${target.name}. Reconectando… (${next.attempt} de ${next.limit})`
-        : `${target.name} no responde. Reintentando…`
-    );
+    // The first tries go unnoticed, like a short buffer: only the corner indicator. A cut that
+    // lasts gets a message, which brings the controls back.
+    setLoading(true);
+
+    if (next.attempt >= LOUD_RECONNECT_ATTEMPT) {
+      setStatus(`Se cortó la señal de ${target.name}. Reconectando… (${next.attempt} de ${next.limit})`);
+    }
 
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
@@ -757,6 +795,8 @@ export function createPlayer(root, {
     clearTimeout(idleTimer);
 
     teardown();
+    setLoading(false);
+    setStatus(null);
 
     root.hidden = true;
     closing = false;
@@ -781,10 +821,13 @@ export function createPlayer(root, {
   // LIMPIEZA
   // --------------------------------------------------
 
-  function teardown() {
-    if (current?.native) {
+  // keepNative: a reconnect of the same channel keeps ExoPlayer and its last frame; anything else
+  // (another channel, closing, a final error) stops it, even while a reconnect waits.
+  function teardown({ keepNative = false } = {}) {
+    if (nativeActive && !keepNative) {
       native.stop().catch(() => {});
       document.documentElement.removeAttribute('data-native-video');
+      nativeActive = false;
     }
 
     current = null;
@@ -823,6 +866,7 @@ export function createPlayer(root, {
 
   function fail(cause) {
     teardown();
+    setLoading(false);
 
     setStatus(
       `No se pudo reproducir ${channel.name}. ${cause} ${SWITCH_HINT}`,
@@ -839,7 +883,29 @@ export function createPlayer(root, {
       isError
     );
 
-    wake();
+    // A message to read brings the controls back; clearing one changes nothing on screen.
+    if (message) wake();
+  }
+
+  // Loading never wakes the controls nor keeps them up: a corner indicator, shown only when the
+  // wait lasts LOADING_DELAY_MS.
+  let loadingTimer = null;
+
+  function setLoading(on) {
+    clearTimeout(loadingTimer);
+    loadingTimer = null;
+
+    if (!on) {
+      loading.hidden = true;
+      return;
+    }
+
+    if (!loading.hidden) return;
+
+    loadingTimer = setTimeout(() => {
+      loadingTimer = null;
+      if (!root.hidden) loading.hidden = false;
+    }, LOADING_DELAY_MS);
   }
 
   function describeHlsError(data) {
