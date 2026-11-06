@@ -22,6 +22,21 @@ export function describeDropped(count) {
   return count === 1 ? '1 cuadro' : `${count} cuadros`;
 }
 
+// How much the player has buffered ahead and, on a live channel, how far behind the live edge it
+// plays. A freeze is the buffer running dry; the live offset caps how big the buffer can get.
+export function describeCushion(stats) {
+  if (!stats) return '—';
+  const parts = [`${(stats.bufferedMs / 1000).toFixed(1)} s cargados`];
+  if (stats.liveOffsetMs >= 0) parts.push(`${(stats.liveOffsetMs / 1000).toFixed(1)} s detrás del vivo`);
+  return parts.join(' · ');
+}
+
+// Freezes, segment retries, rejoins: a count, with the last HTTP code when the server sent one.
+export function describeCount(count, lastStatus = null) {
+  if (!count) return 'ninguno';
+  return lastStatus ? `${count} (último: ${lastStatus})` : String(count);
+}
+
 // TextureView is the default (SurfaceView left the B866V2 black); the switch tries the other one.
 export function nextSurface(current) {
   return current === 'surface' ? 'texture' : 'surface';

@@ -28,6 +28,8 @@ import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.source.LoadEventInfo;
+import androidx.media3.exoplayer.source.MediaLoadData;
 import androidx.media3.ui.PlayerView;
 
 import com.getcapacitor.JSObject;
@@ -36,6 +38,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.io.IOException;
 import java.util.Locale;
 
 /**
@@ -80,6 +83,8 @@ public class NativeVideoPlugin extends Plugin {
     private boolean resumeOnForeground;
     // Bumped by every play() and stop(): a load still waiting for its surface runs only if it is the latest.
     private int loadToken;
+    // The current stream reached READY once: buffering from then on is a freeze ("stall").
+    private boolean wasReady;
 
     @PluginMethod
     public void play(PluginCall call) {
@@ -131,6 +136,19 @@ public class NativeVideoPlugin extends Plugin {
             return holder != null && holder.isValid();
         }
         return true;
+    }
+
+    // For the diagnostics panel: media buffered ahead and, on a live stream, how far behind the live
+    // edge it plays (-1 otherwise). The live window caps the buffer: a freeze is the buffer at zero.
+    @PluginMethod
+    public void stats(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            JSObject data = new JSObject();
+            boolean playing = player != null && url != null;
+            data.put("bufferedMs", playing ? player.getTotalBufferedDuration() : 0);
+            data.put("liveOffsetMs", playing && player.isCurrentMediaItemLive() ? player.getCurrentLiveOffset() : -1);
+            call.resolve(data);
+        });
     }
 
     @PluginMethod
@@ -192,7 +210,7 @@ public class NativeVideoPlugin extends Plugin {
             .build();
 
         player = new ExoPlayer.Builder(getContext(), renderers)
-            .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
+            .setMediaSourceFactory(new DefaultMediaSourceFactory(http).setLoadErrorHandlingPolicy(new LiveRetryPolicy()))
             .setLoadControl(buffers)
             .build();
         player.addListener(listener);
@@ -223,6 +241,7 @@ public class NativeVideoPlugin extends Plugin {
     }
 
     private void load(boolean asHls) {
+        wasReady = false;
         MediaItem.Builder item = new MediaItem.Builder().setUri(Uri.parse(url));
         if (asHls) item.setMimeType(MimeTypes.APPLICATION_M3U8);
         player.setMediaItem(item.build());
@@ -243,7 +262,12 @@ public class NativeVideoPlugin extends Plugin {
     private final Player.Listener listener = new Player.Listener() {
         @Override
         public void onPlaybackStateChanged(int state) {
-            if (state == Player.STATE_BUFFERING && url != null) emit("buffering", new JSObject());
+            if (state == Player.STATE_READY) wasReady = true;
+            if (state == Player.STATE_BUFFERING && url != null) {
+                // Buffering after the stream was ready is a freeze the viewer sees (the buffer ran dry).
+                if (wasReady) emit("stall", new JSObject());
+                emit("buffering", new JSObject());
+            }
         }
 
         @Override
@@ -280,6 +304,10 @@ public class NativeVideoPlugin extends Plugin {
             boolean behindLive = error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW;
             if ((behindLive || (network && !finalAnswer)) && rejoins < MAX_REJOINS) {
                 rejoins++;
+                JSObject rejoin = new JSObject();
+                rejoin.put("message", error.getErrorCodeName());
+                if (status != null) rejoin.put("status", status);
+                emit("rejoin", rejoin);
                 player.seekToDefaultPosition();
                 player.prepare();
                 return;
@@ -332,6 +360,20 @@ public class NativeVideoPlugin extends Plugin {
             data.put("count", droppedFrames);
             data.put("elapsedMs", elapsedMs);
             emit("dropped", data);
+        }
+
+        // A playlist or segment load that failed and will be retried (LiveRetryPolicy): the 404s and
+        // cut connections behind most freezes on IPTV restreams.
+        @Override
+        public void onLoadError(
+            @NonNull EventTime eventTime, @NonNull LoadEventInfo loadEventInfo, @NonNull MediaLoadData mediaLoadData,
+            @NonNull IOException error, boolean wasCanceled) {
+            if (url == null || wasCanceled) return;
+            JSObject data = new JSObject();
+            Integer status = httpStatusOf(error);
+            if (status != null) data.put("status", status);
+            data.put("message", error.getClass().getSimpleName());
+            emit("loadError", data);
         }
     };
 
