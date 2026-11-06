@@ -104,9 +104,10 @@ it lasts more than 0.7 s, and a message appears only from the third reconnect tr
 Freezes while watching: the restreams in the own list publish a live window of only about four 3 s
 segments (~12 s), and ExoPlayer plays ~9 s behind the live edge, so it can never buffer more than
 that; a bigger cushion is not possible there. What helps is not waiting on a failed segment:
-`LiveRetryPolicy` retries a failed playlist or segment (an HTTP error, a dropped connection, a body
-cut short) after 250 ms, 500 ms, 750 ms and then every second, six times, instead of ExoPlayer's
-0 / 1 / 2 s and then failing the whole stream into a rejoin.
+`LiveRetryPolicy` retries a failed playlist or segment (an HTTP error, a dropped connection, a read
+past the end of the response) after 250 ms, 500 ms, 750 ms and then every second, six times, instead
+of ExoPlayer's 0 / 1 / 2 s and then failing the whole stream into a rejoin. Timeouts keep the default
+policy, so a server that never answers still fails in reasonable time.
 
 ### Offline cache
 

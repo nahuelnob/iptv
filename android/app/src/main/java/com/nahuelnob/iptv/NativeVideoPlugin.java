@@ -296,9 +296,9 @@ public class NativeVideoPlugin extends Plugin {
 
             Integer status = httpStatusOf(error);
 
-            // IPTV servers drop segments mid-transfer, and ExoPlayer's default policy treats some of
-            // those cuts (a short body read as "position out of range") as fatal at once. Rejoin the
-            // live edge instead, like hls.js retries. A 4xx answer is final and is not retried.
+            // Reached only once LiveRetryPolicy's retries ran out (or for errors it leaves to the
+            // default policy, such as timeouts): rejoin the live edge, like hls.js does. A 4xx
+            // answer is final and goes to the page, which reconnects or reports it.
             boolean finalAnswer = status != null && status >= 400 && status < 500;
             boolean network = error.errorCode >= 2000 && error.errorCode < 3000;
             boolean behindLive = error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW;
