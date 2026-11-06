@@ -13,10 +13,11 @@ import { createPlayer } from './ui/player.js';
 import { createBackGuard } from './ui/back-stack.js';
 import { isBack } from './ui/keys.js';
 import { enableSpatialNav, focusElement, isVisible } from './ui/spatial-nav.js';
-import { connectNativeBack } from './infra/native-back.js';
+import { connectNativeBack, exitApp } from './infra/native-back.js';
 import { checkForUpdate } from './infra/app-update.js';
 import { registerServiceWorker } from './infra/service-worker.js';
 import { createUpdatePrompt } from './ui/update-prompt.js';
+import { createExitPrompt } from './ui/exit-prompt.js';
 import { nextTap, tapHint } from './domain/dev-mode.js';
 import { isDevMode, saveDevMode } from './infra/dev-mode-store.js';
 
@@ -80,6 +81,7 @@ const player = createPlayer($('[data-player]'), {
   isDevMode: () => devMode,
 });
 const updatePrompt = createUpdatePrompt($('[data-update]'), { onChange: () => guard.sync() });
+const exitPrompt = createExitPrompt($('[data-exit]'), { onExit: exitApp, onChange: () => guard.sync() });
 const guard = createBackGuard({
   hasWork: () => Boolean(backAction()),
   onBack: () => backAction()?.(),
@@ -88,7 +90,7 @@ const guard = createBackGuard({
 
 nav.onClose = focusContent;
 enableSpatialNav({ onEdge });
-connectNativeBack();
+connectNativeBack({ onExitRequest: () => exitPrompt.open() });
 
 // ---- Rendering --------------------------------------------------------
 
@@ -317,6 +319,7 @@ function onEdge(from, direction) {
 // Back, in order: open drawer → header back to the grid → section back to Inicio → category back to Todos.
 function backAction() {
   if (updatePrompt.isOpen()) return updatePrompt.close;
+  if (exitPrompt.isOpen()) return exitPrompt.close;
   if (player.isOpen()) return null;
   if (nav.isOpen()) return () => nav.close(true);
   const inHeader = document.activeElement?.closest('[data-zone="top"]');

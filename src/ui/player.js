@@ -104,7 +104,7 @@ export function createPlayer(root, {
       if (current?.native && current.id === data?.id) handler(data, current);
     });
 
-    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error', 'stall', 'loadError', 'rejoin', 'frameRate']) {
+    for (const name of ['buffering', 'playing', 'firstFrame', 'tracks', 'decoder', 'format', 'dropped', 'error', 'stall', 'loadError', 'rejoin', 'frameRate', 'skip']) {
       on(name, data => diag.event(name, data));
     }
 

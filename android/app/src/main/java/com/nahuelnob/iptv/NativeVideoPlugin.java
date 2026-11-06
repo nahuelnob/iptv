@@ -23,8 +23,10 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.Timeline;
 import androidx.media3.common.Tracks;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.Util;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
@@ -68,6 +70,8 @@ public class NativeVideoPlugin extends Plugin {
     private static final int TIMEOUT_MS = 15_000;
     // Consecutive network failures rejoined before giving up; reset whenever playback resumes.
     private static final int MAX_REJOINS = 3;
+    // Lost segments skipped in a row before the error goes on as before; reset whenever playback resumes.
+    private static final int MAX_SKIPS = 3;
     // How long a channel waits for its video surface before loading anyway, and how often it checks.
     private static final long SURFACE_WAIT_MS = 1_000;
     private static final long SURFACE_POLL_MS = 16;
@@ -89,6 +93,10 @@ public class NativeVideoPlugin extends Plugin {
     private int loadToken;
     // The current stream reached READY once: buffering from then on is a freeze ("stall").
     private boolean wasReady;
+    // End (in period time) of the last segment the server answered 404/410 for, until it loads.
+    private long lostSegmentEndMs = C.TIME_UNSET;
+    // Lost segments skipped in a row without playback resuming in between (capped by MAX_SKIPS).
+    private int skips;
 
     @PluginMethod
     public void play(PluginCall call) {
@@ -110,6 +118,7 @@ public class NativeVideoPlugin extends Plugin {
             id = requestedId;
             forcedHls = false;
             rejoins = 0;
+            skips = 0;
             // The view first, then the stream once its surface exists. Loading first let some decoders
             // (an Android 11 Flow deco) configure before the surface arrived: green, garbled video until
             // the channel was switched away and back.
@@ -207,6 +216,7 @@ public class NativeVideoPlugin extends Plugin {
             loadToken++;
             // Leaving the channel: its last frame must not show under the next one.
             if (view != null) view.setKeepContentOnPlayerReset(false);
+            keepScreenOn(false);
             if (player != null) {
                 player.stop();
                 player.clearMediaItems();
@@ -293,6 +303,7 @@ public class NativeVideoPlugin extends Plugin {
     private void load(boolean asHls) {
         wasReady = false;
         frameRateMeter.reset();
+        lostSegmentEndMs = C.TIME_UNSET;
         MediaItem.Builder item = new MediaItem.Builder().setUri(Uri.parse(url));
         if (asHls) item.setMimeType(MimeTypes.APPLICATION_M3U8);
         player.setMediaItem(item.build());
@@ -323,8 +334,12 @@ public class NativeVideoPlugin extends Plugin {
 
         @Override
         public void onIsPlayingChanged(boolean isPlaying) {
+            // The video plays under the WebView, so Android sees a page nobody touches and starts the
+            // screensaver. Keep the screen on while it plays; pausing, stopping or an error lets it rest.
+            keepScreenOn(isPlaying);
             if (!isPlaying) return;
             rejoins = 0;
+            skips = 0;
             emit("playing", new JSObject());
         }
 
@@ -350,6 +365,14 @@ public class NativeVideoPlugin extends Plugin {
             // Reached only once LiveRetryPolicy's retries ran out (or for errors it leaves to the
             // default policy, such as timeouts): rejoin the live edge, like hls.js does. A 4xx
             // answer is final and goes to the page, which reconnects or reports it.
+            // A segment the server never published: Media3 retries it until playback reaches the hole
+            // (after playing out the whole buffer) and only then fails. Jump just past it: only that
+            // piece is lost, instead of everything up to the live edge, which a rejoin would skip.
+            if (status != null && (status == 404 || status == 410) && skipLostSegment()) {
+                emit("skip", new JSObject());
+                return;
+            }
+
             boolean finalAnswer = status != null && status >= 400 && status < 500;
             boolean network = error.errorCode >= 2000 && error.errorCode < 3000;
             boolean behindLive = error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW;
@@ -432,9 +455,61 @@ public class NativeVideoPlugin extends Plugin {
             Integer status = httpStatusOf(error);
             if (status != null) data.put("status", status);
             data.put("message", error.getClass().getSimpleName());
+            data.put("kind", kindOf(mediaLoadData.dataType));
             emit("loadError", data);
+
+            // A segment the server answers "gone" for: remember where it ends, so that if it never
+            // appears, playback can jump just past it (onPlayerError) instead of rejoining the live edge.
+            boolean gone = status != null && (status == 404 || status == 410);
+            if (gone && mediaLoadData.dataType == C.DATA_TYPE_MEDIA && mediaLoadData.mediaEndTimeMs != C.TIME_UNSET) {
+                lostSegmentEndMs = mediaLoadData.mediaEndTimeMs;
+            }
+        }
+
+        // The segment came after all (a 404 for a segment not yet published): nothing to skip.
+        @Override
+        public void onLoadCompleted(
+            @NonNull EventTime eventTime, @NonNull LoadEventInfo loadEventInfo, @NonNull MediaLoadData mediaLoadData) {
+            if (mediaLoadData.dataType == C.DATA_TYPE_MEDIA && mediaLoadData.mediaEndTimeMs == lostSegmentEndMs) {
+                lostSegmentEndMs = C.TIME_UNSET;
+            }
         }
     };
+
+    // Seeks just past the last lost segment when it is still inside the live window and ahead of the
+    // playback position. False when there is nothing safe to skip to, or after MAX_SKIPS skips with no
+    // playback in between (a server publishing no segments at all): the caller then rejoins or reports
+    // the error to the page as before, instead of skipping forever behind a spinner.
+    private boolean skipLostSegment() {
+        if (lostSegmentEndMs == C.TIME_UNSET || skips >= MAX_SKIPS) return false;
+        Timeline timeline = player.getCurrentTimeline();
+        if (timeline.isEmpty()) return false;
+
+        Timeline.Window window = timeline.getWindow(player.getCurrentMediaItemIndex(), new Timeline.Window());
+        long target = lostSegmentEndMs - Util.usToMs(window.positionInFirstPeriodUs);
+        long duration = window.getDurationMs();
+        lostSegmentEndMs = C.TIME_UNSET;
+        if (duration == C.TIME_UNSET || target <= player.getCurrentPosition() || target >= duration) return false;
+
+        // 1 ms past the end: both times are rounded down to milliseconds, and landing exactly on the
+        // boundary could pick the missing segment again.
+        skips++;
+        player.seekTo(target + 1);
+        player.prepare();
+        return true;
+    }
+
+    private void keepScreenOn(boolean on) {
+        Window window = getActivity().getWindow();
+        if (on) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    private static String kindOf(int dataType) {
+        if (dataType == C.DATA_TYPE_MANIFEST) return "lista";
+        if (dataType == C.DATA_TYPE_MEDIA) return "segmento";
+        return "otro";
+    }
 
     private static Integer httpStatusOf(Throwable error) {
         for (Throwable cause = error; cause != null; cause = cause.getCause()) {
